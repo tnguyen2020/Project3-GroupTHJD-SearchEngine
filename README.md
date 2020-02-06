@@ -1,4 +1,4 @@
 # JavaII-Pollock-Thi-Jordan-Diane-Hamzah
 Project3-Java2Advanced-Pollock-Thi,Jordan,Diane,Hamzah
 
-# focus on GUI elements
+# Create a local Search Engine.
