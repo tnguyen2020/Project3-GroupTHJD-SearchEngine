@@ -2,7 +2,7 @@
 Project3-Java2Advanced-Pollock-Thi,Jordan,Diane,Hamzah
 
 # Create a local Search Engine.
-Test out and Creat a local Search Engine
+Test out and Create a local Search Engine
 
 # Team Organization:
 Team Organization and Work Procedures
