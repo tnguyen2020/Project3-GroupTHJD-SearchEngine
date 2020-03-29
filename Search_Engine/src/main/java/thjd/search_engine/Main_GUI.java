@@ -7,6 +7,7 @@ package thjd.search_engine;
 import java.io.*;
 import java.util.ArrayList;
 import javax.swing.JFileChooser; // For adding and saving files
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -36,8 +37,8 @@ public class Main_GUI extends javax.swing.JFrame {
        // Clears the index_list of any previous contents
        index_list.clear();
        
-       // Reads all lines from index.txt
        try {
+            // Reads all lines from index.txt
             FileReader fr = new FileReader ("index.txt");
             BufferedReader br = new BufferedReader(fr);
             
@@ -46,8 +47,10 @@ public class Main_GUI extends javax.swing.JFrame {
             while ((str = br.readLine()) != null){
                 index_list.add(str);
             }
-            
+            // Closes the file
             br.close();
+            System.out.println("Index Read");
+            
         } catch(IOException e){
             System.out.println("index.txt File not found");
         }
@@ -56,16 +59,19 @@ public class Main_GUI extends javax.swing.JFrame {
     // Writs index_list items to index.txt file and table model on GUI
     private void Update(){
         // Clear table model rows
-        model.setRowCount(0);
+        model.setRowCount(0);        
         
         // Place index_list items into table model to display on GUI
         for (int i = 0; i < index_list.size(); i++) {
+            // Index Validation implemented
+            String tbl_status = Index_Validation(index_list,i);
+            
             // Spliting string on "__" character
             String[] str_split = index_list.get(i).split("__"); 
             model.insertRow(tbl_index.getRowCount(), new Object[]{
             str_split[0],
             str_split[1],
-            "Indexed"
+            tbl_status
         });
         }
        
@@ -85,6 +91,66 @@ public class Main_GUI extends javax.swing.JFrame {
         }
     }
     
+// Checks file index status
+    private String Index_Validation (ArrayList<String> index_list, int i){
+        String[] str_split = index_list.get(i).split("__"); 
+        String absolute_path = str_split[1];
+        File f = new File(absolute_path); // Gets the file with abs path
+        if (!f.exists()){ // File not found handling
+            return "File not found";
+        } else if (f.lastModified() != 
+                Long.parseLong(str_split[2]) ){ // File modified
+            return "File Modified";
+        } else { // File unchanged
+            return "Indexed";
+        }
+        
+    }
+    
+    // Adds file and calls Update() method
+    private void Add_File() {
+        try {
+            // Opens add file dialogue at default user directory
+            JFileChooser j = new JFileChooser();
+            j.setDialogTitle("Choose file to index");
+            j.showOpenDialog(null);
+        
+            // Validates a .txt file is chosen
+            // Holds the filename
+            String file_name = j.getSelectedFile().getName();
+            // Holds file type
+            String file_type = file_name.substring(
+                    file_name.lastIndexOf("."),file_name.length());
+            
+            if (file_type.equals(".txt")) {
+                // Build string format: fileName__absolutePath__lastModified
+                String append_string = j.getSelectedFile().getName() + "__" + 
+                    j.getSelectedFile().getAbsolutePath() + "__" + 
+                        (j.getSelectedFile().lastModified());
+        
+                // Append added file name and absolute path to index_list
+                index_list.add(append_string);
+        
+                // Call update function
+                Update();
+            } else {
+                JOptionPane.showMessageDialog(null, "Only text files with .txt "
+                        + " extension can be indexed");
+            }
+            
+        } catch (NullPointerException e){
+            System.out.println("Please select a file.");
+        }
+    }
+    
+    // Removes selected file. Calls Update() method
+    private void Remove_File() {
+        // If a row is selected, removed that row
+        if (tbl_index.getSelectedRow() != -1) {
+            index_list.remove(tbl_index.getSelectedRow());
+        }
+        Update();
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -361,36 +427,14 @@ public class Main_GUI extends javax.swing.JFrame {
 
     private void Add_File_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Add_File_ButtonActionPerformed
         // TODO add your handling code here:
-        // Opens add file dialogue at default user directory
-        try {
-            JFileChooser j = new JFileChooser();
-            j.setDialogTitle("Choose file to index");
-            j.showOpenDialog(null);
-        
-        
-            // Builds string with | separator between file name and absolute path
-            String append_string = j.getSelectedFile().getName() + "__" + 
-                j.getSelectedFile().getAbsolutePath();
-        
-            // Append added file name and absolute path to index_list
-            index_list.add(append_string);
-        
-            // Call update function
-            Update();
-        } catch (NullPointerException e){
-            System.out.println("Please select a file.");
-        }
-        
-        
+        // Add_File method call
+        Add_File();
     }//GEN-LAST:event_Add_File_ButtonActionPerformed
 
     private void Remove_File_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Remove_File_ButtonActionPerformed
         // TODO add your handling code here:
-        // If a row is selected, removed that row
-        if (tbl_index.getSelectedRow() != -1) {
-            index_list.remove(tbl_index.getSelectedRow());
-        }
-        Update();
+        // Remove_File method call
+        Remove_File();
     }//GEN-LAST:event_Remove_File_ButtonActionPerformed
 
     private void Rebuild_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Rebuild_ButtonActionPerformed
@@ -432,7 +476,7 @@ public class Main_GUI extends javax.swing.JFrame {
         // Code gets run when ever window is selected and reselected
         Read_Index();
         Update();
-        System.out.println("Index Read");
+        
     }//GEN-LAST:event_formWindowActivated
     
     
