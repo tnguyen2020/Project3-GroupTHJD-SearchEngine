@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 package thjd.search_engine;
-import java.io.File;
+
 /**
  *
- * @author THJD
+ * @author hqqas
  */
 public class Main_GUI extends javax.swing.JFrame {
 
@@ -145,12 +145,6 @@ public class Main_GUI extends javax.swing.JFrame {
         }
 
         jButton2.setText("Add File");
-        
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-            	addFileButtonPress(evt);
-            }
-        });
 
         jButton3.setText("Rebuild Out-of-date");
 
@@ -249,11 +243,6 @@ public class Main_GUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void addFileButtonPress(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        System.out.println("jb2");
-    }//GEN-LAST:event_jButton2ActionPerformed
-    
     /**
      * @param args the command line arguments
      */
