@@ -13,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author Team: THJD
+ * Team Members: Hamzah Qasim, Jordan Adania, Thi Nguyen, and Diane Vargas
  */
 public class Main_GUI extends javax.swing.JFrame {
 
