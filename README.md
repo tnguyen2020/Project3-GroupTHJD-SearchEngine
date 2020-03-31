@@ -12,4 +12,3 @@ Project Organization:
     Text Encoding: UTF-8
     Line Endings: CRLF
     Development Plan: Independent branch development (means creating individual branch and template and asking members to approve for final project to push to master).
-
