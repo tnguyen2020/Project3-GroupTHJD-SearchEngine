@@ -1,14 +1,22 @@
-# JavaII-Pollock-Thi-Jordan-Diane-Hamzah
-Project3-Java2Advanced-Pollock-Thi,Jordan,Diane,Hamzah
+# Java II - Project 5 - Team THJD
+The application loads on the Search page.
 
-# Create a local Search Engine.
+![Search](https://i.imgur.com/cYvksLc.png)
 
-# Team Organization:
-Team Organization and Work Procedures
-Group name: THJD
-Group Members: Thi, Hamzah, Diane, and Jordan
-Project Lead: Thi Nguyen
-Project Organization:
-    Text Encoding: UTF-8
-    Line Endings: CRLF
-    Development Plan: Independent branch development (means creating individual branch and template and asking members to approve for final project to push to master).
+'Maintenance...' will take you to the next window.
+
+'About...' loads the project github in your default browser.
+
+![Maintenance](https://i.imgur.com/4j76jSU.png)
+
+'Search Engine...' will take you to the previous window.
+
+# Team Organization and Work Procedures
+
+Group Members: Thi, Hamzah, Jordan, and Diane
+
+Text Encoding: UTF-8
+    
+Line Endings: CRLF
+    
+Development Plan: Independent branch development (means creating individual branch and template and asking members to approve for final project to push to master).
