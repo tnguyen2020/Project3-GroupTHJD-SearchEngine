@@ -1,544 +1,291 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package thjd.search_engine;
-import java.io.*;
+
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
-import javax.swing.JFileChooser; // For adding and saving files
+import java.util.Enumeration;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author Team: THJD
- * Team Members: Hamzah Qasim, Jordan Adania, Thi Nguyen, and Diane Vargas
- */
-public class Main_GUI extends javax.swing.JFrame {
+import net.miginfocom.swing.MigLayout;
 
-    /**
-     * Creates new form Main_GUI
-     */
-    
-    // Creates table model object
-    DefaultTableModel model;
-    // Creates Index array list object. index_list holds the lines of index.txt
-    ArrayList<String> index_list = new ArrayList<String>();
-    
-    public Main_GUI() {
-        initComponents();
-        // Table model object constructor
-        model = (DefaultTableModel) tbl_index.getModel();
-        
-    }
+public class Main_GUI{
 
-    // Reads index file and display on table
-    private void Read_Index(){
-       // Clears the index_list of any previous contents
-       index_list.clear();
-       
-       try {
-            // Reads all lines from index.txt
-            FileReader fr = new FileReader ("index.txt");
-            BufferedReader br = new BufferedReader(fr);
-            
-            // Adds read lines into index_list
-            String str;
-            while ((str = br.readLine()) != null){
-                index_list.add(str);
-            }
-            // Closes the file
-            br.close();
-            System.out.println("Index Read");
-            
-        } catch(IOException e){
-            System.out.println("index.txt File not found");
-        }
-    }
-    
-    // Writs index_list items to index.txt file and table model on GUI
+	private JFrame frmSearchEngine;
+	private DefaultTableModel dtm = new DefaultTableModel(0,2);
+    private JTable table = new JTable(dtm);
+    private ArrayList<String> list = new ArrayList<String>();
+	
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					setUIFont(new javax.swing.plaf.FontUIResource("Courier New", Font.BOLD, 14));
+					Main_GUI window = new Main_GUI();
+					window.frmSearchEngine.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	public Main_GUI() {
+		initialize();
+	}
+
+	private void initialize() {		
+		JPanel    pnlSearch = new JPanel();
+		JPanel    pnlMainte = new JPanel();
+		JPanel   pnlSearch1 = new JPanel();
+		JPanel   pnlSearch2 = new JPanel();
+		JPanel   pnlSearch3 = new JPanel();
+		JPanel pnlSearch1_1 = new JPanel();
+		JPanel	 pnlMainte1 = new JPanel();
+		JPanel	 pnlMainte2 = new JPanel();
+		JPanel pnlMainte2_1 = new JPanel();
+		JPanel pnlMainte2_2 = new JPanel();
+		JPanel   pnlMainte4 = new JPanel();
+		
+		JScrollPane pnlMainte3 = new JScrollPane();
+		
+		JLabel lblSearch1 = new JLabel("Search Engine");
+		JLabel lblSearch2 = new JLabel("Search Terms:");
+		JLabel lblSearch3 = new JLabel("Number of files indexed: 0");
+		JLabel lblMainte1 = new JLabel("Search Engine - Index Maintenance");
+		JLabel lblMainte2 = new JLabel("File Name");
+		JLabel lblMainte3 = new JLabel("Status");
+		JLabel lblMainte4 = new JLabel(lblSearch3.getText());
+		JLabel lblMainte5 = new JLabel("Search Engine version 1.1");
+		
+		JButton  btnSrcIt = new JButton("Search");
+		JButton  btnGoSrc = new JButton("Search Engine...");
+		JButton  btnGoMnt = new JButton("Maintenance...");
+		JButton  btnGoAbt = new JButton("About...");
+		JButton  btnAddFi = new JButton("Add File...");
+		JButton  btnRebil = new JButton("Rebuild Out-of-date");
+		JButton  btnRmvFi = new JButton("Remove Selected Files");
+		
+		JRadioButton rdbSearch1 = new JRadioButton("All Search Terms");
+		JRadioButton rdbSearch2 = new JRadioButton("Any Search Terms");
+		JRadioButton rdbSearch3 = new JRadioButton("Exact Phrase");
+		
+		JTextField	 txtSearch1 = new JTextField(50);
+		
+		frmSearchEngine = new JFrame();
+		frmSearchEngine.setTitle("Search Engine");
+		frmSearchEngine.setBounds(100, 100, 800, 400);
+		frmSearchEngine.setMinimumSize(new Dimension(670, 400));
+		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		final CardLayout cl = new CardLayout(0, 0);
+		final  Container c  = frmSearchEngine.getContentPane();
+
+		table.setTableHeader(null);
+		pnlMainte3.setViewportView(table);
+		
+		c.setLayout(cl);
+		pnlSearch.setLayout(new MigLayout("", "[784px,grow]", "[120px][120px,grow][0]"));
+		pnlSearch1.setLayout(new MigLayout("", "[grow][grow][grow]", "[][][grow]"));
+		pnlSearch3.setLayout(new MigLayout("", "[32:n,grow,left][32:n,grow,shrinkprio 50,center][32:n,grow,shrinkprio 0,right]", "[]"));
+		pnlMainte.setLayout(new MigLayout("", "[grow]", "[::200,grow][24:n:24][0:600,grow][64:96:128,grow]"));
+		pnlMainte1.setLayout(new MigLayout("", "[grow,center]", "[grow]"));
+		pnlMainte2.setLayout(new GridLayout(0, 2, 0, 0));
+		pnlMainte4.setLayout(new MigLayout("", "[grow][grow][grow]", "[32:64:96,grow,top][32:64:96,grow]"));
+		
+		pnlSearch2.setBackground(Color.BLACK);
+
+		lblSearch1.setFont(new Font("Courier New", Font.BOLD, 32));
+		lblMainte1.setFont(new Font("Courier New", Font.BOLD, 32));
+		
+		pnlMainte2_1.setBorder(new MatteBorder(1, 1, 1, 1, (Color) Color.GRAY));
+		pnlMainte2_2.setBorder(new MatteBorder(1, 1, 1, 1, (Color) Color.GRAY));
+		
+		c.add(pnlSearch, "Search");
+		c.add(pnlMainte, "Mainte");
+		
+		pnlSearch.add(pnlSearch1, "growx");
+		pnlSearch.add(pnlSearch2, "cell 0 1,grow");
+		pnlSearch.add(pnlSearch3, "cell 0 2,growx,aligny center");
+		pnlSearch1.add(lblSearch1, "cell 0 0 3 1,alignx center");
+		pnlSearch1.add(lblSearch2, "cell 0 1,alignx right");
+		pnlSearch1.add(txtSearch1, "cell 1 1,growx");
+		pnlSearch1.add(btnSrcIt, "cell 2 1");
+		pnlSearch1.add(pnlSearch1_1, "cell 0 2 3 1,grow");
+		pnlSearch1_1.add(rdbSearch1);
+		pnlSearch1_1.add(rdbSearch2);
+		pnlSearch1_1.add(rdbSearch3);
+		pnlSearch3.add(btnGoMnt, "cell 0 0,alignx left");
+		pnlSearch3.add(lblSearch3, "cell 1 0");
+		pnlSearch3.add(btnGoAbt, "cell 2 0");
+		
+		pnlMainte.add(pnlMainte1, "cell 0 0,grow");
+		pnlMainte.add(pnlMainte2, "cell 0 1,grow");
+		pnlMainte.add(pnlMainte3, "cell 0 2,grow");
+		pnlMainte.add(pnlMainte4, "cell 0 3,grow");
+		pnlMainte1.add(lblMainte1, "cell 0 0");
+		pnlMainte2.add(pnlMainte2_1);
+		pnlMainte2.add(pnlMainte2_2);
+		pnlMainte2_1.add(lblMainte2);
+		pnlMainte2_2.add(lblMainte3);
+		pnlMainte4.add(btnAddFi, "cell 0 0,alignx center,aligny top");
+		pnlMainte4.add(btnRebil, "cell 1 0,alignx center,aligny top");
+		pnlMainte4.add(btnRmvFi, "cell 2 0,alignx center,aligny top");
+		pnlMainte4.add(btnGoSrc, "cell 0 1,alignx left,aligny top");
+		pnlMainte4.add(lblMainte4, "cell 1 1,alignx center,aligny top");
+		pnlMainte4.add(lblMainte5, "cell 2 1,alignx right,aligny top");
+		
+		
+		btnGoMnt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cl.show(c, "Mainte");
+			}
+		});
+		btnGoSrc.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cl.show(c, "Search");
+			}
+		});
+		btnGoAbt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+			    Desktop.getDesktop().browse(new URL("https://github.com/tnguyen2020/Project3-GroupTHJD-SearchEngine").toURI());
+			} catch (Exception ex) {}
+			}
+		});
+		btnAddFi.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addFile();
+			}
+		});
+		btnRmvFi.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeFile();
+			}
+		});
+	}
+	
+	public static void setUIFont(javax.swing.plaf.FontUIResource f) {
+	    Enumeration<Object> keys = UIManager.getDefaults().keys();
+	    while (keys.hasMoreElements()) {
+	        Object key = keys.nextElement();
+	        Object value = UIManager.get(key);
+	        if (value instanceof javax.swing.plaf.FontUIResource)
+	            UIManager.put(key, f);
+	    }
+	}
+	
+	// Read File
+	private void readIt() {
+		String file;
+		list.clear();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("index.txt"));
+			while ((file = br.readLine())!=null) { 
+				list.add(file);
+			}
+			br.close();
+			System.out.println("Index Read");
+		}
+		catch(IOException e){
+			System.out.println("index.txt File not found");
+		}
+	}
+	
+	// Update GUI and Index
     private void Update(){
-        // Clear table model rows
-        model.setRowCount(0);        
-        
-        // Place index_list items into table model to display on GUI
-        for (int i = 0; i < index_list.size(); i++) {
-            // Index Validation implemented
-            String tbl_status = Index_Validation(index_list,i);
-            
-            // Spliting string on "__" character
-            String[] str_split = index_list.get(i).split("__"); 
-            model.insertRow(tbl_index.getRowCount(), new Object[]{
-            str_split[0],
-            str_split[1],
-            tbl_status
-        });
+    	// Clear GUI
+    	dtm.setRowCount(0);
+    	// Update GUI
+        for(int i=0; i<list.size(); i++){
+            String  idx = verifyIndex(i);
+        	String[] in = list.get(i).split("__");
+        	dtm.addRow(new Object[] {in[1],idx});
         }
-       
-        // Write index_list to index.txt, deleting all old content in index file
-        try {
-            FileWriter fw = new FileWriter ("index.txt");
-            PrintWriter pw = new PrintWriter(fw);
-            
-            // Prints index_list items per line on index.txt file
-            for (int i = 0; i < index_list.size(); i++){
-                pw.println(index_list.get(i));
+        // Try updating the index
+        try{
+            PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
+            for(int i=0; i<list.size(); i++){
+            	pw.println(list.get(i));
             }
-            
             pw.close();
-        } catch (IOException e) {
-            System.out.println("Error!");
+        } catch(IOException e){
+        	System.out.println("Error!");
         }
     }
-    
-// Checks file index status
-    private String Index_Validation (ArrayList<String> index_list, int i){
-        String[] str_split = index_list.get(i).split("__"); 
+	
+	// Add File
+	private void addFile(){
+		try{
+			JFileChooser fc = new JFileChooser();
+			fc.setDialogTitle("Choose file to index");
+			fc.showOpenDialog(null);
+			String fName = fc.getSelectedFile().getName();
+			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
+			if(fType.equals(".txt")){
+				String out = fc.getSelectedFile().getName() + "__" +
+						 fc.getSelectedFile().getAbsolutePath() + "__" +
+						(fc.getSelectedFile().lastModified());
+				// Checks for duplicate entries
+				if(!list.contains(out)) {
+					list.add(out);
+					Update();
+				}
+            } else{ // fType.equals(".txt")
+            	JOptionPane.showMessageDialog(null, ".txt ONLY");
+            }
+		} catch(NullPointerException e){
+			System.out.println("Please select a file.");
+		}
+	}
+	
+	// Remove Selected File
+    private void removeFile() {
+    	byte b = (byte) table.getSelectedRow();
+        if(b!=-1) list.remove(b);
+        Update();
+    }
+	
+    // Verify Index
+    private String verifyIndex (int i){
+        String[] str_split = list.get(i).split("__"); 
         String absolute_path = str_split[1];
-        File f = new File(absolute_path); // Gets the file with abs path
-        if (!f.exists()){ // File not found handling
+        File f = new File(absolute_path);
+        if (!f.exists()){
             return "File not found";
         } else if (f.lastModified() != 
-                Long.parseLong(str_split[2]) ){ // File modified
+                Long.parseLong(str_split[2]) ){
             return "File Modified";
-        } else { // File unchanged
+        } else {
             return "Indexed";
         }
         
     }
-    
-    // Adds file and calls Update() method
-    private void Add_File() {
-        try {
-            // Opens add file dialogue at default user directory
-            JFileChooser j = new JFileChooser();
-            j.setDialogTitle("Choose file to index");
-            j.showOpenDialog(null);
-        
-            // Validates a .txt file is chosen
-            // Holds the filename
-            String file_name = j.getSelectedFile().getName();
-            // Holds file type
-            String file_type = file_name.substring(
-                    file_name.lastIndexOf("."),file_name.length());
-            
-            if (file_type.equals(".txt")) {
-                // Build string format: fileName__absolutePath__lastModified
-                String append_string = j.getSelectedFile().getName() + "__" + 
-                    j.getSelectedFile().getAbsolutePath() + "__" + 
-                        (j.getSelectedFile().lastModified());
-        
-                // Append added file name and absolute path to index_list
-                index_list.add(append_string);
-        
-                // Call update function
-                Update();
-            } else {
-                JOptionPane.showMessageDialog(null, "Only text files with .txt "
-                        + " extension can be indexed");
-            }
-            
-        } catch (NullPointerException e){
-            System.out.println("Please select a file.");
-        }
-    }
-    
-    // Removes selected file. Calls Update() method
-    private void Remove_File() {
-        // If a row is selected, removed that row
-        if (tbl_index.getSelectedRow() != -1) {
-            index_list.remove(tbl_index.getSelectedRow());
-        }
-        Update();
-    }
-    
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        tbl_index = new javax.swing.JTable();
-        Add_File_Button = new javax.swing.JButton();
-        Rebuild_Button = new javax.swing.JButton();
-        Remove_File_Button = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                formFocusGained(evt);
-            }
-        });
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowActivated(java.awt.event.WindowEvent evt) {
-                formWindowActivated(evt);
-            }
-        });
-
-        jTabbedPane1.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jTabbedPane1FocusGained(evt);
-            }
-        });
-
-        jPanel1.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jPanel1FocusGained(evt);
-            }
-        });
-
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 48)); // NOI18N
-        jLabel1.setText("Search Engine");
-
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
-
-        jButton1.setText("Search");
-
-        jRadioButton1.setText("All of the Search Terms");
-
-        jRadioButton2.setText("Any of the Search Terms");
-
-        jRadioButton3.setText("Exact Phrase");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(121, 121, 121)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jRadioButton1)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jRadioButton2)
-                                        .addGap(27, 27, 27))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(191, 191, 191)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addComponent(jRadioButton3))
-                            .addComponent(jScrollPane1)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(198, 198, 198)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(137, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButton1)
-                    .addComponent(jRadioButton2)
-                    .addComponent(jRadioButton3))
-                .addGap(12, 12, 12)
-                .addComponent(jButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 297, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 27, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("Search", jPanel1);
-
-        jPanel2.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jPanel2FocusGained(evt);
-            }
-        });
-        jPanel2.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jPanel2MouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                jPanel2MouseEntered(evt);
-            }
-        });
-
-        jLabel5.setFont(new java.awt.Font("Dialog", 1, 36)); // NOI18N
-        jLabel5.setText("Search Engine - Index Maintenance");
-
-        tbl_index.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "File Name", "Path", "Status"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        tbl_index.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tbl_index.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tbl_index.getTableHeader().setReorderingAllowed(false);
-        jScrollPane2.setViewportView(tbl_index);
-
-        Add_File_Button.setText("Add File");
-        Add_File_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                Add_File_ButtonActionPerformed(evt);
-            }
-        });
-
-        Rebuild_Button.setText("Rebuild Out-of-date");
-        Rebuild_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                Rebuild_ButtonActionPerformed(evt);
-            }
-        });
-
-        Remove_File_Button.setText("Remove Selected Files");
-        Remove_File_Button.setPreferredSize(new java.awt.Dimension(160, 32));
-        Remove_File_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                Remove_File_ButtonActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(81, 81, 81)
-                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 628, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(123, 123, 123)
-                                .addComponent(Add_File_Button, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(Rebuild_Button, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(Remove_File_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 52, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Add_File_Button)
-                    .addComponent(Rebuild_Button)
-                    .addComponent(Remove_File_Button, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(38, 38, 38))
-        );
-
-        jTabbedPane1.addTab("Maintenance", jPanel2);
-
-        jLabel4.setText("Search Engine 1.1");
-
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 36)); // NOI18N
-        jLabel3.setText("Built by THJD");
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(76, 76, 76)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel3))
-                .addContainerGap(457, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(53, 53, 53)
-                .addComponent(jLabel3)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel4)
-                .addContainerGap(398, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("About", jPanel3);
-
-        jLabel2.setText("Number of files indexed: 0");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane1)
-                .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 247, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(233, 233, 233))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 558, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel2)
-                .addGap(0, 11, Short.MAX_VALUE))
-        );
-
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void Add_File_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Add_File_ButtonActionPerformed
-        // TODO add your handling code here:
-        // Add_File method call
-        Add_File();
-    }//GEN-LAST:event_Add_File_ButtonActionPerformed
-
-    private void Remove_File_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Remove_File_ButtonActionPerformed
-        // TODO add your handling code here:
-        // Remove_File method call
-        Remove_File();
-    }//GEN-LAST:event_Remove_File_ButtonActionPerformed
-
-    private void Rebuild_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Rebuild_ButtonActionPerformed
-        // TODO add your handling code here:        
-    }//GEN-LAST:event_Rebuild_ButtonActionPerformed
-
-    private void jTabbedPane1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jTabbedPane1FocusGained
-        // TODO add your handling code here:  
-        
-    }//GEN-LAST:event_jTabbedPane1FocusGained
-
-    private void jPanel1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jPanel1FocusGained
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_jPanel1FocusGained
-
-    private void formFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_formFocusGained
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_formFocusGained
-
-    private void jPanel2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel2MouseClicked
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_jPanel2MouseClicked
-
-    private void jPanel2FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jPanel2FocusGained
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_jPanel2FocusGained
-
-    private void jPanel2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel2MouseEntered
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_jPanel2MouseEntered
-
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        // TODO add your handling code here:
-        // Code gets run when ever window is selected and reselected
-        Read_Index();
-        Update();
-        
-    }//GEN-LAST:event_formWindowActivated
-    
-    
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Main_GUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Main_GUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Main_GUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Main_GUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Main_GUI().setVisible(true);
-            }
-        });
-        
-    }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton Add_File_Button;
-    private javax.swing.JButton Rebuild_Button;
-    private javax.swing.JButton Remove_File_Button;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTable tbl_index;
-    // End of variables declaration//GEN-END:variables
 }
