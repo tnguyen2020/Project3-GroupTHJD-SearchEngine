@@ -17,9 +17,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -42,15 +45,21 @@ public class Main_GUI{
 
 	private static int LOAD_WIDTH  = 800;
 	private static int LOAD_HEIGHT = 400;
-	private static int MIN_WIDTH  = 670;
-	private static int MIN_HEIGHT = 400;
+	private static int MIN_WIDTH   = 670;
+	private static int MIN_HEIGHT  = 400;
 
-    private ArrayList<String> fileMap;
-    private HashMap<String, HashMap<Integer,Integer>> wordMap;
-	private JFrame frmSearchEngine;
-	private DefaultTableModel dtm;
-    private JTable tblSearch;
-    private JTable tblMainte;
+    private 				ArrayList<String>	   keys;
+    private HashMap<String, ArrayList<Integer[]>> index;
+	private 				ArrayList<Integer[]>   locs;
+	
+	//private HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>> locsMap;
+	
+	private 		   JFrame frmSearchEngine;
+	private DefaultTableModel tblModel1;
+    private			   JTable tblSearch;
+    private			   JTable tblMainte;
+    private			   JLabel lblSearch3;
+    private			   JLabel lblMainte4;
     
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -67,19 +76,15 @@ public class Main_GUI{
 	}
 
 	public Main_GUI() {
-		fileMap = new ArrayList<String>();
-		wordMap = new HashMap<String, HashMap<Integer,Integer>>();
-		
+		keys = new ArrayList<String>();
+		index = new HashMap<String, ArrayList<Integer[]>>();
+		loadData();
+		// Can be used to pinpoint which row and column the word is
+		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
 		frmSearchEngine = new JFrame();
-		frmSearchEngine.setTitle("Search Engine");
-		frmSearchEngine.setBounds(100, 100, LOAD_WIDTH, LOAD_HEIGHT);
-		frmSearchEngine.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
-		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		dtm = new DefaultTableModel(0,2);
-		tblSearch = new JTable(dtm);
-		tblMainte = new JTable(dtm);
-		
+		tblModel1 = new DefaultTableModel(0,2);
+		tblSearch = new JTable(tblModel1);
+		tblMainte = new JTable(tblModel1);
 		initialize();
 	}
 
@@ -99,12 +104,12 @@ public class Main_GUI{
 		
 		JLabel lblSearch1 = new JLabel("Search Engine");
 		JLabel lblSearch2 = new JLabel("Search Terms:");
-		JLabel lblSearch3 = new JLabel("Number of files indexed: 0");
+		lblSearch3 = new JLabel("Number of files indexed: " + keys.size());
 		JLabel lblMainte1 = new JLabel("Search Engine - Index Maintenance");
 		JLabel lblMainte2 = new JLabel("File Name");
 		JLabel lblMainte3 = new JLabel("Status");
-		JLabel lblMainte4 = new JLabel(lblSearch3.getText());
-		JLabel lblMainte5 = new JLabel("Search Engine version 1.1");
+		lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
+		JLabel lblMainte5 = new JLabel("Search Engine version 5.2");
 		
 		JButton  btnSrcIt = new JButton("Search");
 		JButton  btnGoSrc = new JButton("Search Engine...");
@@ -121,10 +126,16 @@ public class Main_GUI{
 		JTextField	 txtSearch1 = new JTextField(50);
 
 		final CardLayout cl = new CardLayout(0, 0);
-		final  Container c  = frmSearchEngine.getContentPane();
-
+		final  Container  c = frmSearchEngine.getContentPane();
+		
+		frmSearchEngine.setTitle("Search Engine");
+		frmSearchEngine.setBounds(100, 100, LOAD_WIDTH, LOAD_HEIGHT);
+		frmSearchEngine.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
+		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		tblSearch.setTableHeader(null);
 		tblMainte.setTableHeader(null);
+		
 		pnlSrc2.setViewportView(tblSearch);
 		pnlMnt3.setViewportView(tblMainte);
 		
@@ -200,6 +211,11 @@ public class Main_GUI{
 				addFiles();
 			}
 		});
+		btnRebil.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadData();
+			}
+		});
 		btnRmvFi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				removeFiles();
@@ -237,126 +253,198 @@ public class Main_GUI{
 	            UIManager.put(key, f);
 	    }
 	}
-	
-	// Update GUI, FileMap, and WordMap
-    private void Update(){
-    	// Clear GUI
-    	dtm.setRowCount(0);
-    	// Update GUI
-        for(int i=0; i<fileMap.size(); i++){
-            String  idx = verifyIndex(i);
-        	String[] in = fileMap.get(i).split("__");
-        	dtm.addRow(new Object[] {in[1],idx});
-        }
-        // Try updating the FileMap
-        try{
-            PrintWriter pw = new PrintWriter(new FileWriter("files.txt"));
-            for(int i=0; i<fileMap.size(); i++){
-            	pw.println(fileMap.get(i));
-            }
-            pw.close();
-        } catch(IOException e){
-        	System.out.println("Error!");
-        }
-        // Try updating the WordMap
-        /*try{
-            PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
-            for(int i=0; i<wordMap.size(); i++){
-            	pw.println(wordMap.get(i));
-            }
-            pw.close();
-        } catch(IOException e){
-        	System.out.println("Error!");
-        }*/
-    }
-    
-    private boolean isCommon(String in) {
+
+	// Add file to index
+	private void indexFile(File f){
+		//int col, row;
+		int pos;
 		String line;
-    	ArrayList<String> cmnWords = new ArrayList<String>();
-    	try {
-			BufferedReader br = new BufferedReader(new FileReader("common.txt"));
-			while((line=br.readLine())!=null) {
-				cmnWords.add(line);
-			}
-			br.close();
-			if(cmnWords.contains(in))
-				return true;
-			else
-				return false;
-		} catch (IOException e) {
-			System.out.println("Common Words File Missing");
-			return false;
-		}
-    }
-    
-	private void addToFileMap(String in) {
-		fileMap.add(in);
-	}
-	private void addToWordMap(File f){
-		int	   col = 0;
-		int	   row = 0;
-		String	  line;
-		String[] words;
-		HashMap<Integer,Integer> val = new HashMap<Integer,Integer>();
+		String[] in;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
+			//row = 
+			pos = 0;
 			while((line=br.readLine())!=null){
-				words = line.split("\\s+");
-				col = 0;
-				for(String word:words) {
+				in = line.trim().split("\\s+");
+				//col = 0;
+				for(String word:in) {
 					word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
 					if(!word.equals("")) {
-						if(!isCommon(word)) {
-							val.put((fileMap.size()-1),col);
-							//if(!wordMap.containsKey(word)) {
-								wordMap.put(word, val);
-							//}
+						if(!isStopWord(word)) {
+							if(!index.containsKey(word)) {
+								locs = new ArrayList<Integer[]>();
+							} else {
+								locs = index.get(word);
+							}
+							locs.add(new Integer[]{keys.size()-1,pos});
+							// locsMap.put(locs, new ArrayList<Integer[]>());
+							index.put(word, locs);
+							++pos;
 						}
 					}
-					++col;
+					//++col;
 				}
-				++row;
+				//++row;
 			}
 			br.close();
-			for(String s:wordMap.keySet()) {
-				System.out.println(s+" "+wordMap.get(s).toString());
-			}
-			//pw.close();
 		} catch (IOException e) {
-			System.out.println("This should never happen!");
+			System.out.println("Unknown Error");
+			e.printStackTrace();
 		}
 	}
 	
-	// Add File to FileMap
+	// Add Files to Search Engine
 	private void addFiles(){
 			JFileChooser fc = new JFileChooser();
 			fc.setDialogTitle("Choose file");
 			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
 			fc.setMultiSelectionEnabled(true);
 			fc.showOpenDialog(null);
-			
-			File[] files = fc.getSelectedFiles();
-			for(File f:files) {
-				String fOut = formatFileName(f);
-				// Add File to list
-				addToFileMap(fOut);
-				// Index the File
-				addToWordMap(f);
+			File[] fs = fc.getSelectedFiles();
+			for(File f:fs) {
+				String fOut = formatKeys(f);
+				if(!keys.contains(fOut));{
+					keys.add(fOut);
+					indexFile(f);
+		        	tblModel1.addRow(new Object[] {f.getPath(),"Indexed"});
+		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+				}
 			}
-			Update();
+			saveData();
 	}
 	
+	// Update 
+    private void updateMainte(){
+    	// Clear GUI
+    	tblModel1.setRowCount(0);
+    	// Update GUI
+        for(int i=0; i<keys.size(); i++){
+            String status = getStatus(i);
+        	String[]   in = keys.get(i).split("__");
+        	tblModel1.addRow(new Object[] {in[1],status});
+        }
+        saveData();
+		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+    }
+    
+    private void saveData() {
+    	saveKeys();
+        saveIndex();
+    }
+    // Write keys to file
+    private void saveKeys() {
+    	try {
+			PrintWriter pw = new PrintWriter(new FileWriter("keys.txt"));
+            for(int i=0; i<keys.size(); i++){
+            	pw.println(keys.get(i));
+            }
+            pw.close();			
+		} catch (IOException e) {
+			System.out.println("Error Writing to File!");
+		}
+    }
+    // Write index to file
+    private void saveIndex() {
+    	try {
+			PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
+			for(String s:index.keySet()) {
+				pw.print(s);
+				for(Integer[] i:index.get(s))
+					for(Integer j:i)
+						pw.print(" "+j);
+				pw.println();
+			}
+            pw.close();			
+		} catch (IOException e) {
+			System.out.println("Error Writing to File!");
+		}
+    	
+    }
+
+    private void loadData() {
+    	loadKeys();
+    	loadIndex();
+    }
+	// Load keys from file
+	private void loadKeys() {
+		try {
+			List<String> lines = Files.readAllLines(Paths.get("keys.txt"));
+			for(String s:lines)
+				keys.add(s);
+		} catch (IOException e) {
+			System.out.println("Keys File Missing!");
+		}
+		
+	}
+	// Load index from file
+	private void loadIndex() {
+		String line;
+		String[] in;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("index.txt"));
+			while((line=br.readLine())!=null){
+				locs = new ArrayList<Integer[]>();
+				in = line.split("\\s+");
+				index.put(in[0],locs);
+				for(int i=1; i<in.length;i+=2) {
+					locs.add(new Integer[] {(Integer.parseInt(in[i])),(Integer.parseInt(in[i+1]))});
+				}
+			}
+			br.close();
+		} catch (IOException e) {
+			System.out.println("Index File Missing!");
+		}
+		
+	}
+	
+    // Get status of file(indexed, missing, modified)
+    private String getStatus (int i){
+        String[] key = keys.get(i).split("__"); 
+        String  path = key[1];
+        File f = new File(path);
+        if (!f.exists()){
+            return "File not found";
+        } else if (f.lastModified() != 
+                Long.parseLong(key[2]) ){
+            return "File Modified";
+        } else {
+            return "Indexed";
+        }
+    }
+        
+    // Is stop word?
+    private boolean isStopWord(String in) {
+		String line;
+    	ArrayList<String> stops = new ArrayList<String>();
+    	try {
+			BufferedReader br = new BufferedReader(new FileReader("stopWords.txt"));
+			while((line=br.readLine())!=null) {
+				stops.add(line);
+			}
+			br.close();
+			if(stops.contains(in))
+				return true;
+			else
+				return false;
+		} catch (IOException e) {
+			System.out.println("Stop Words File Missing");
+			return false;
+		}
+    }
+
 	// Remove Selected Files
     private void removeFiles() {
     	int[] rows = tblMainte.getSelectedRows();
         if(rows!=null)
         	for(int i=rows.length-1; i>=0; --i)
-        		fileMap.remove(rows[i]);
-        Update();
+        		keys.remove(rows[i]);
+        updateMainte();
     }
     
-    // Format Files for Indexing
-	private String formatFileName(File f) {
+    // File name format for files ArrayList
+	private String formatKeys(File f) {
 		try{
 			String fName = f.getName();
 			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
@@ -372,20 +460,4 @@ public class Main_GUI{
 		}
 		return null;
 	}
-	
-    // Verify Index
-    private String verifyIndex (int i){
-        String[] str_split = fileMap.get(i).split("__"); 
-        String absolute_path = str_split[1];
-        File f = new File(absolute_path);
-        if (!f.exists()){
-            return "File not found";
-        } else if (f.lastModified() != 
-                Long.parseLong(str_split[2]) ){
-            return "File Modified";
-        } else {
-            return "Indexed";
-        }
-        
-    }
 }
