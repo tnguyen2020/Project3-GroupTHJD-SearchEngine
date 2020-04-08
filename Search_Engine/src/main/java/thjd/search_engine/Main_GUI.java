@@ -22,7 +22,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -52,6 +54,7 @@ public class Main_GUI{
     private HashMap<String, ArrayList<Integer[]>> index;
 	private 				ArrayList<Integer[]>   locs;
 	
+	// Can be used to increase the accuracy of word position in document
 	//private HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>> locsMap;
 	
 	private 		   JFrame frmSearchEngine;
@@ -61,6 +64,8 @@ public class Main_GUI{
     private			   JTable tblMainte;
     private			   JLabel lblSearch3;
     private			   JLabel lblMainte4;
+    
+    private byte b;
     
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -79,7 +84,7 @@ public class Main_GUI{
 	public Main_GUI() {
 		keys = new ArrayList<String>();
 		index = new HashMap<String, ArrayList<Integer[]>>();
-		// Can be used to pinpoint which row and column the word is
+		// Can be used to increase the accuracy of word position in document
 		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
 		frmSearchEngine = new JFrame();
 		tblModel1 = new DefaultTableModel(0,2);
@@ -190,7 +195,12 @@ public class Main_GUI{
 		pnlMainte4.add(lblMainte4, "cell 1 1,alignx center,aligny top");
 		pnlMainte4.add(lblMainte5, "cell 2 1,alignx right,aligny top");
 		
-		
+
+		btnSrcIt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				runSearch(txtSearch1.getText());
+			}
+		});
 		btnGoMnt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cl.show(c, "Mainte");
@@ -228,6 +238,7 @@ public class Main_GUI{
 				rdbSearch1.setSelected(true);
 				rdbSearch2.setSelected(false);
 				rdbSearch3.setSelected(false);
+				b = -1;
 			}
 		});
 		rdbSearch2.addActionListener(new ActionListener() {
@@ -235,6 +246,7 @@ public class Main_GUI{
 				rdbSearch2.setSelected(true);
 				rdbSearch1.setSelected(false);
 				rdbSearch3.setSelected(false);
+				b = 0;
 			}
 		});
 		rdbSearch3.addActionListener(new ActionListener() {
@@ -242,6 +254,7 @@ public class Main_GUI{
 				rdbSearch3.setSelected(true);
 				rdbSearch1.setSelected(false);
 				rdbSearch2.setSelected(false);
+				b = 1;
 			}
 		});
 	}
@@ -256,46 +269,7 @@ public class Main_GUI{
 	    }
 	}
 
-	// Add file to index
-	private void indexFile(File f){
-		//int col, row;
-		int pos;
-		String line;
-		String[] in;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(f));
-			//row = 
-			pos = 0;
-			while((line=br.readLine())!=null){
-				in = line.trim().split("\\s+");
-				//col = 0;
-				for(String word:in) {
-					word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
-					if(!word.equals("")) {
-						if(!isStopWord(word)) {
-							if(!index.containsKey(word)) {
-								locs = new ArrayList<Integer[]>();
-							} else {
-								locs = index.get(word);
-							}
-							locs.add(new Integer[]{keys.size()-1,pos});
-							// locsMap.put(locs, new ArrayList<Integer[]>());
-							index.put(word, locs);
-							++pos;
-						}
-					}
-					//++col;
-				}
-				//++row;
-			}
-			br.close();
-		} catch (IOException e) {
-			System.out.println("Unknown Error");
-			e.printStackTrace();
-		}
-	}
-	
-	// Update 
+	// Update Maintenance GUI
     private void updateMntGui(){
     	// Clear GUI
     	tblModel1.setRowCount(0);
@@ -308,6 +282,100 @@ public class Main_GUI{
 		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
 		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
     }
+	// Update Search GUI
+    private void updateSrcGui(){
+    	// Clear GUI
+    	tblModel2.setRowCount(0);
+    	// Update GUI
+        for(int i=0; i<keys.size(); i++){
+            String status = getStatus(i);
+        	String[]   in = keys.get(i).split("__");
+        	tblModel1.addRow(new Object[] {in[1],status});
+        }
+		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+    }
+
+	// Add file to index
+	private void indexFile(File f){
+		//int col, row;
+		int		  pos;
+		String 	   in;
+ArrayList<String> out;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			//row = 0;
+			pos = 0;
+			while((in=br.readLine())!=null){
+				//col = 0;
+				out = makeOver(in);
+				for(String word:out) {
+					if(!index.containsKey(word)) {
+						locs = new ArrayList<Integer[]>();
+					} else {
+						locs = index.get(word);
+					}
+					locs.add(new Integer[]{keys.size()-1,pos});
+					// locsMap.put(locs, new ArrayList<Integer[]>());
+					index.put(word, locs);
+					++pos;
+					//++col;
+				}
+				//++row;
+			}
+			br.close();
+		} catch (IOException e) {
+			System.out.println("Unknown Error");
+			e.printStackTrace();
+		}
+	}
+	// idfk
+	private ArrayList<String>makeOver(String line) {
+		int	i = 0;
+		String[] in;
+		ArrayList<String> out = new ArrayList<String>();
+		in = line.trim().split("\\s+");
+		for(String word:in) {
+			word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
+			if(!word.equals("")) {
+				if(!isStopWord(word)) {
+					out.add(word);
+				}
+			}
+		}
+		return out;
+	}
+	
+	private Set<Integer> anySearch(ArrayList<String> in, Set<Integer> out) {
+		// Walk Search Terms
+		for(String s:in) {
+			// If term is in index
+			if(index.containsKey(s)) {
+				// locs <Integer,Integer>
+				locs = index.get(s);
+				// Walk all instances
+				for(Integer[] k:locs) {
+					// If docID is NOT in Set is
+					if(!out.contains(k[0])) {
+						// Add it to the Set {docID,pos}
+						out.add(k[0]);
+					}// !is.contains(k[0])
+				}// Integer[] k:locs
+			}// index.containsKey(s)
+		}// Strings:out
+		return out;
+	}
+    // Run Search Function
+	private void runSearch(String text) {
+		ArrayList<String> out;
+		Set<Integer> is = new HashSet<Integer>();
+		//ArrayList<Integer> is = new ArrayList<Integer>();
+		out = makeOver(text);
+	
+		// "Any" Button Selected
+		if(b==0)
+			is = anySearch(out, is);
+	}// void runSearch(String)
     
     private void saveData() {
     	saveKeys();
