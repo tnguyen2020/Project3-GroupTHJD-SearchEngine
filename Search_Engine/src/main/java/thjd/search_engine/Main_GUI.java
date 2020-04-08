@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -32,17 +33,25 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.MatteBorder;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.table.DefaultTableModel;
 
 import net.miginfocom.swing.MigLayout;
 
 public class Main_GUI{
 
+	private static int LOAD_WIDTH  = 800;
+	private static int LOAD_HEIGHT = 400;
+	private static int MIN_WIDTH  = 670;
+	private static int MIN_HEIGHT = 400;
+
+    private ArrayList<String> fileMap;
+    private HashMap<String, HashMap<Integer,Integer>> wordMap;
 	private JFrame frmSearchEngine;
-	private DefaultTableModel dtm = new DefaultTableModel(0,2);
-    private JTable table = new JTable(dtm);
-    private ArrayList<String> list = new ArrayList<String>();
-	
+	private DefaultTableModel dtm;
+    private JTable tblSearch;
+    private JTable tblMainte;
+    
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -58,6 +67,19 @@ public class Main_GUI{
 	}
 
 	public Main_GUI() {
+		fileMap = new ArrayList<String>();
+		wordMap = new HashMap<String, HashMap<Integer,Integer>>();
+		
+		frmSearchEngine = new JFrame();
+		frmSearchEngine.setTitle("Search Engine");
+		frmSearchEngine.setBounds(100, 100, LOAD_WIDTH, LOAD_HEIGHT);
+		frmSearchEngine.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
+		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		dtm = new DefaultTableModel(0,2);
+		tblSearch = new JTable(dtm);
+		tblMainte = new JTable(dtm);
+		
 		initialize();
 	}
 
@@ -65,16 +87,15 @@ public class Main_GUI{
 		JPanel    pnlSearch = new JPanel();
 		JPanel    pnlMainte = new JPanel();
 		JPanel   pnlSearch1 = new JPanel();
-		JPanel   pnlSearch2 = new JPanel();
+		JScrollPane pnlSrc2 = new JScrollPane();
 		JPanel   pnlSearch3 = new JPanel();
 		JPanel pnlSearch1_1 = new JPanel();
 		JPanel	 pnlMainte1 = new JPanel();
 		JPanel	 pnlMainte2 = new JPanel();
 		JPanel pnlMainte2_1 = new JPanel();
 		JPanel pnlMainte2_2 = new JPanel();
+		JScrollPane pnlMnt3 = new JScrollPane();
 		JPanel   pnlMainte4 = new JPanel();
-		
-		JScrollPane pnlMainte3 = new JScrollPane();
 		
 		JLabel lblSearch1 = new JLabel("Search Engine");
 		JLabel lblSearch2 = new JLabel("Search Terms:");
@@ -98,18 +119,14 @@ public class Main_GUI{
 		JRadioButton rdbSearch3 = new JRadioButton("Exact Phrase");
 		
 		JTextField	 txtSearch1 = new JTextField(50);
-		
-		frmSearchEngine = new JFrame();
-		frmSearchEngine.setTitle("Search Engine");
-		frmSearchEngine.setBounds(100, 100, 800, 400);
-		frmSearchEngine.setMinimumSize(new Dimension(670, 400));
-		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		final CardLayout cl = new CardLayout(0, 0);
 		final  Container c  = frmSearchEngine.getContentPane();
 
-		table.setTableHeader(null);
-		pnlMainte3.setViewportView(table);
+		tblSearch.setTableHeader(null);
+		tblMainte.setTableHeader(null);
+		pnlSrc2.setViewportView(tblSearch);
+		pnlMnt3.setViewportView(tblMainte);
 		
 		c.setLayout(cl);
 		pnlSearch.setLayout(new MigLayout("", "[784px,grow]", "[120px][120px,grow][0]"));
@@ -119,8 +136,6 @@ public class Main_GUI{
 		pnlMainte1.setLayout(new MigLayout("", "[grow,center]", "[grow]"));
 		pnlMainte2.setLayout(new GridLayout(0, 2, 0, 0));
 		pnlMainte4.setLayout(new MigLayout("", "[grow][grow][grow]", "[32:64:96,grow,top][32:64:96,grow]"));
-		
-		pnlSearch2.setBackground(Color.BLACK);
 
 		lblSearch1.setFont(new Font("Courier New", Font.BOLD, 32));
 		lblMainte1.setFont(new Font("Courier New", Font.BOLD, 32));
@@ -131,8 +146,8 @@ public class Main_GUI{
 		c.add(pnlSearch, "Search");
 		c.add(pnlMainte, "Mainte");
 		
-		pnlSearch.add(pnlSearch1, "growx");
-		pnlSearch.add(pnlSearch2, "cell 0 1,grow");
+		pnlSearch.add(pnlSearch1, "cell 0 0,growx");
+		pnlSearch.add(pnlSrc2, "cell 0 1,grow");
 		pnlSearch.add(pnlSearch3, "cell 0 2,growx,aligny center");
 		pnlSearch1.add(lblSearch1, "cell 0 0 3 1,alignx center");
 		pnlSearch1.add(lblSearch2, "cell 0 1,alignx right");
@@ -148,7 +163,7 @@ public class Main_GUI{
 		
 		pnlMainte.add(pnlMainte1, "cell 0 0,grow");
 		pnlMainte.add(pnlMainte2, "cell 0 1,grow");
-		pnlMainte.add(pnlMainte3, "cell 0 2,grow");
+		pnlMainte.add(pnlMnt3, "cell 0 2,grow");
 		pnlMainte.add(pnlMainte4, "cell 0 3,grow");
 		pnlMainte1.add(lblMainte1, "cell 0 0");
 		pnlMainte2.add(pnlMainte2_1);
@@ -182,100 +197,185 @@ public class Main_GUI{
 		});
 		btnAddFi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				addFile();
+				addFiles();
 			}
 		});
 		btnRmvFi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				removeFile();
+				removeFiles();
+			}
+		});
+		rdbSearch1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				rdbSearch1.setSelected(true);
+				rdbSearch2.setSelected(false);
+				rdbSearch3.setSelected(false);
+			}
+		});
+		rdbSearch2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				rdbSearch2.setSelected(true);
+				rdbSearch1.setSelected(false);
+				rdbSearch3.setSelected(false);
+			}
+		});
+		rdbSearch3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				rdbSearch3.setSelected(true);
+				rdbSearch1.setSelected(false);
+				rdbSearch2.setSelected(false);
 			}
 		});
 	}
 	
-	public static void setUIFont(javax.swing.plaf.FontUIResource f) {
+	public static void setUIFont(FontUIResource f) {
 	    Enumeration<Object> keys = UIManager.getDefaults().keys();
 	    while (keys.hasMoreElements()) {
 	        Object key = keys.nextElement();
 	        Object value = UIManager.get(key);
-	        if (value instanceof javax.swing.plaf.FontUIResource)
+	        if (value instanceof FontUIResource)
 	            UIManager.put(key, f);
 	    }
 	}
 	
-	// Read File
-	private void readIt() {
-		String file;
-		list.clear();
-		try {
-			BufferedReader br = new BufferedReader(new FileReader("index.txt"));
-			while ((file = br.readLine())!=null) { 
-				list.add(file);
-			}
-			br.close();
-			System.out.println("Index Read");
-		}
-		catch(IOException e){
-			System.out.println("index.txt File not found");
-		}
-	}
-	
-	// Update GUI and Index
+	// Update GUI, FileMap, and WordMap
     private void Update(){
     	// Clear GUI
     	dtm.setRowCount(0);
     	// Update GUI
-        for(int i=0; i<list.size(); i++){
+        for(int i=0; i<fileMap.size(); i++){
             String  idx = verifyIndex(i);
-        	String[] in = list.get(i).split("__");
+        	String[] in = fileMap.get(i).split("__");
         	dtm.addRow(new Object[] {in[1],idx});
         }
-        // Try updating the index
+        // Try updating the FileMap
         try{
-            PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
-            for(int i=0; i<list.size(); i++){
-            	pw.println(list.get(i));
+            PrintWriter pw = new PrintWriter(new FileWriter("files.txt"));
+            for(int i=0; i<fileMap.size(); i++){
+            	pw.println(fileMap.get(i));
             }
             pw.close();
         } catch(IOException e){
         	System.out.println("Error!");
         }
-    }
-	
-	// Add File
-	private void addFile(){
-		try{
-			JFileChooser fc = new JFileChooser();
-			fc.setDialogTitle("Choose file to index");
-			fc.showOpenDialog(null);
-			String fName = fc.getSelectedFile().getName();
-			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
-			if(fType.equals(".txt")){
-				String out = fc.getSelectedFile().getName() + "__" +
-						 fc.getSelectedFile().getAbsolutePath() + "__" +
-						(fc.getSelectedFile().lastModified());
-				// Checks for duplicate entries
-				if(!list.contains(out)) {
-					list.add(out);
-					Update();
-				}
-            } else{ // fType.equals(".txt")
-            	JOptionPane.showMessageDialog(null, ".txt ONLY");
+        // Try updating the WordMap
+        /*try{
+            PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
+            for(int i=0; i<wordMap.size(); i++){
+            	pw.println(wordMap.get(i));
             }
-		} catch(NullPointerException e){
-			System.out.println("Please select a file.");
+            pw.close();
+        } catch(IOException e){
+        	System.out.println("Error!");
+        }*/
+    }
+    
+    private boolean isCommon(String in) {
+		String line;
+    	ArrayList<String> cmnWords = new ArrayList<String>();
+    	try {
+			BufferedReader br = new BufferedReader(new FileReader("common.txt"));
+			while((line=br.readLine())!=null) {
+				cmnWords.add(line);
+			}
+			br.close();
+			if(cmnWords.contains(in))
+				return true;
+			else
+				return false;
+		} catch (IOException e) {
+			System.out.println("Common Words File Missing");
+			return false;
+		}
+    }
+    
+	private void addToFileMap(String in) {
+		fileMap.add(in);
+	}
+	private void addToWordMap(File f){
+		int	   col = 0;
+		int	   row = 0;
+		String	  line;
+		String[] words;
+		HashMap<Integer,Integer> val = new HashMap<Integer,Integer>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			while((line=br.readLine())!=null){
+				words = line.split("\\s+");
+				col = 0;
+				for(String word:words) {
+					word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
+					if(!word.equals("")) {
+						if(!isCommon(word)) {
+							val.put((fileMap.size()-1),col);
+							//if(!wordMap.containsKey(word)) {
+								wordMap.put(word, val);
+							//}
+						}
+					}
+					++col;
+				}
+				++row;
+			}
+			br.close();
+			for(String s:wordMap.keySet()) {
+				System.out.println(s+" "+wordMap.get(s).toString());
+			}
+			//pw.close();
+		} catch (IOException e) {
+			System.out.println("This should never happen!");
 		}
 	}
 	
-	// Remove Selected File
-    private void removeFile() {
-    	byte b = (byte) table.getSelectedRow();
-        if(b!=-1) list.remove(b);
+	// Add File to FileMap
+	private void addFiles(){
+			JFileChooser fc = new JFileChooser();
+			fc.setDialogTitle("Choose file");
+			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
+			fc.setMultiSelectionEnabled(true);
+			fc.showOpenDialog(null);
+			
+			File[] files = fc.getSelectedFiles();
+			for(File f:files) {
+				String fOut = formatFileName(f);
+				// Add File to list
+				addToFileMap(fOut);
+				// Index the File
+				addToWordMap(f);
+			}
+			Update();
+	}
+	
+	// Remove Selected Files
+    private void removeFiles() {
+    	int[] rows = tblMainte.getSelectedRows();
+        if(rows!=null)
+        	for(int i=rows.length-1; i>=0; --i)
+        		fileMap.remove(rows[i]);
         Update();
     }
+    
+    // Format Files for Indexing
+	private String formatFileName(File f) {
+		try{
+			String fName = f.getName();
+			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
+			if(fType.equals(".txt")){
+				String fPath = f.getAbsolutePath();
+				long   fLast = f.lastModified();
+				return new String(fName+"__"+fPath+"__"+fLast);
+			} else{ // fType.equals(".txt")
+        	JOptionPane.showMessageDialog(null, ".txt ONLY");
+        }
+		} catch(NullPointerException e){
+			System.out.println("Please select a file.");
+		}
+		return null;
+	}
 	
     // Verify Index
     private String verifyIndex (int i){
-        String[] str_split = list.get(i).split("__"); 
+        String[] str_split = fileMap.get(i).split("__"); 
         String absolute_path = str_split[1];
         File f = new File(absolute_path);
         if (!f.exists()){
