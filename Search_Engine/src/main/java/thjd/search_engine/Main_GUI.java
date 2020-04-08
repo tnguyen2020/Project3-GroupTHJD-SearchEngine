@@ -56,6 +56,7 @@ public class Main_GUI{
 	
 	private 		   JFrame frmSearchEngine;
 	private DefaultTableModel tblModel1;
+	private DefaultTableModel tblModel2;
     private			   JTable tblSearch;
     private			   JTable tblMainte;
     private			   JLabel lblSearch3;
@@ -78,14 +79,15 @@ public class Main_GUI{
 	public Main_GUI() {
 		keys = new ArrayList<String>();
 		index = new HashMap<String, ArrayList<Integer[]>>();
-		loadData();
 		// Can be used to pinpoint which row and column the word is
 		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
 		frmSearchEngine = new JFrame();
 		tblModel1 = new DefaultTableModel(0,2);
-		tblSearch = new JTable(tblModel1);
+		tblModel2 = new DefaultTableModel(0,2);
+		tblSearch = new JTable(tblModel2);
 		tblMainte = new JTable(tblModel1);
 		initialize();
+		loadData();
 	}
 
 	private void initialize() {		
@@ -293,29 +295,8 @@ public class Main_GUI{
 		}
 	}
 	
-	// Add Files to Search Engine
-	private void addFiles(){
-			JFileChooser fc = new JFileChooser();
-			fc.setDialogTitle("Choose file");
-			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
-			fc.setMultiSelectionEnabled(true);
-			fc.showOpenDialog(null);
-			File[] fs = fc.getSelectedFiles();
-			for(File f:fs) {
-				String fOut = formatKeys(f);
-				if(!keys.contains(fOut));{
-					keys.add(fOut);
-					indexFile(f);
-		        	tblModel1.addRow(new Object[] {f.getPath(),"Indexed"});
-		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
-				}
-			}
-			saveData();
-	}
-	
 	// Update 
-    private void updateMainte(){
+    private void updateMntGui(){
     	// Clear GUI
     	tblModel1.setRowCount(0);
     	// Update GUI
@@ -324,7 +305,6 @@ public class Main_GUI{
         	String[]   in = keys.get(i).split("__");
         	tblModel1.addRow(new Object[] {in[1],status});
         }
-        saveData();
 		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
 		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
     }
@@ -363,14 +343,18 @@ public class Main_GUI{
     	
     }
 
+    // IS THIS A REBUILD TO YOU?
     private void loadData() {
     	loadKeys();
     	loadIndex();
+    	saveData();
+    	updateMntGui();
     }
 	// Load keys from file
 	private void loadKeys() {
 		try {
 			List<String> lines = Files.readAllLines(Paths.get("keys.txt"));
+			keys.clear();
 			for(String s:lines)
 				keys.add(s);
 		} catch (IOException e) {
@@ -384,6 +368,7 @@ public class Main_GUI{
 		String[] in;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader("index.txt"));
+			index.clear();
 			while((line=br.readLine())!=null){
 				locs = new ArrayList<Integer[]>();
 				in = line.split("\\s+");
@@ -397,6 +382,37 @@ public class Main_GUI{
 			System.out.println("Index File Missing!");
 		}
 		
+	}
+	
+	// Remove Selected Files
+    private void removeFiles() {
+    	int[] rows = tblMainte.getSelectedRows();
+        if(rows!=null)
+        	for(int i=rows.length-1; i>=0; --i)
+        		keys.remove(rows[i]);
+        saveData();
+        updateMntGui();
+    }
+	
+	// Add Files to Search Engine
+	private void addFiles(){
+			JFileChooser fc = new JFileChooser();
+			fc.setDialogTitle("Choose file");
+			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
+			fc.setMultiSelectionEnabled(true);
+			fc.showOpenDialog(null);
+			File[] fs = fc.getSelectedFiles();
+			for(File f:fs) {
+				String out = formatKeys(f);
+				if(!keys.contains(out)){
+					keys.add(out);
+					indexFile(f);
+		        	tblModel1.addRow(new Object[] {f.getPath(),"Indexed"});
+		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+				}
+			}
+			saveData();
 	}
 	
     // Get status of file(indexed, missing, modified)
@@ -433,15 +449,6 @@ public class Main_GUI{
 			return false;
 		}
     }
-
-	// Remove Selected Files
-    private void removeFiles() {
-    	int[] rows = tblMainte.getSelectedRows();
-        if(rows!=null)
-        	for(int i=rows.length-1; i>=0; --i)
-        		keys.remove(rows[i]);
-        updateMainte();
-    }
     
     // File name format for files ArrayList
 	private String formatKeys(File f) {
@@ -452,7 +459,7 @@ public class Main_GUI{
 				String fPath = f.getAbsolutePath();
 				long   fLast = f.lastModified();
 				return new String(fName+"__"+fPath+"__"+fLast);
-			} else{ // fType.equals(".txt")
+			} else{
         	JOptionPane.showMessageDialog(null, ".txt ONLY");
         }
 		} catch(NullPointerException e){
