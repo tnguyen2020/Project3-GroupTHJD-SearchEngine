@@ -44,7 +44,11 @@ import javax.swing.table.DefaultTableModel;
 import net.miginfocom.swing.MigLayout;
 
 public class Main_GUI{
-
+/*
+ * 
+ * YOU WERE WORKING ON ALL SEARCH
+ * 
+ */
 	private static int LOAD_WIDTH  = 800;
 	private static int LOAD_HEIGHT = 400;
 	private static int MIN_WIDTH   = 670;
@@ -299,9 +303,9 @@ public class Main_GUI{
 	// Add file to index
 	private void indexFile(File f){
 		//int col, row;
-		int		  pos;
-		String 	   in;
-ArrayList<String> out;
+		int pos;
+		String in;
+		ArrayList<String> out;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			//row = 0;
@@ -329,7 +333,7 @@ ArrayList<String> out;
 			e.printStackTrace();
 		}
 	}
-	// idfk
+	// .split("\\s+") & .trim() & .toLowerCase()
 	private ArrayList<String>makeOver(String line) {
 		int	i = 0;
 		String[] in;
@@ -345,15 +349,35 @@ ArrayList<String> out;
 		}
 		return out;
 	}
-	
+	// ALL Search Logic full array then remove 1 by 1
+	private Set<Integer>allSearch(ArrayList<String> in, Set<Integer> out) {
+		// Walk Search Terms
+		for(String s:in) {
+			// If any term is not in the index
+			if(!index.containsKey(s)) {
+				// get that word's loc map
+				locs = index.get(s);
+				// Walk the locs
+				for(Integer[] k:locs) {
+					// If docID is NOT in Set is
+					if(!out.contains(k[0])) {
+						// Add it to the Set {docID,pos}
+						out.add(k[0]);
+					}// !is.contains(k[0])
+				}// Integer[] k:locs
+			}// index.containsKey(s)
+		}// Strings:out
+		return out;
+	}
+	// OR Search Logic
 	private Set<Integer> anySearch(ArrayList<String> in, Set<Integer> out) {
 		// Walk Search Terms
 		for(String s:in) {
 			// If term is in index
 			if(index.containsKey(s)) {
-				// locs <Integer,Integer>
+				// get that word's loc map
 				locs = index.get(s);
-				// Walk all instances
+				// Walk the locs
 				for(Integer[] k:locs) {
 					// If docID is NOT in Set is
 					if(!out.contains(k[0])) {
@@ -366,15 +390,22 @@ ArrayList<String> out;
 		return out;
 	}
     // Run Search Function
-	private void runSearch(String text) {
-		ArrayList<String> out;
-		Set<Integer> is = new HashSet<Integer>();
-		//ArrayList<Integer> is = new ArrayList<Integer>();
-		out = makeOver(text);
-	
-		// "Any" Button Selected
+	private Set<Integer> runSearch(String in) {
+		Set<Integer> out = new HashSet<Integer>();
+		ArrayList<String> text = makeOver(in);
+		// "All" RdBtn Selected
+		if(b==-1)
+			return allSearch(text, out);
+		// "Any" RdBtn Selected
 		if(b==0)
-			is = anySearch(out, is);
+			return anySearch(text, out);
+		// "Phrase" RdBtn Selected
+		if(b==1) {
+			//return phrSearch(text, out);
+			
+		
+		updateSrcGui();
+		return null;
 	}// void runSearch(String)
     
     private void saveData() {
@@ -410,8 +441,7 @@ ArrayList<String> out;
 		}
     	
     }
-
-    // IS THIS A REBUILD TO YOU?
+    // Startup/Rebuild Button Pressed
     private void loadData() {
     	loadKeys();
     	loadIndex();
@@ -451,18 +481,7 @@ ArrayList<String> out;
 		}
 		
 	}
-	
-	// Remove Selected Files
-    private void removeFiles() {
-    	int[] rows = tblMainte.getSelectedRows();
-        if(rows!=null)
-        	for(int i=rows.length-1; i>=0; --i)
-        		keys.remove(rows[i]);
-        saveData();
-        updateMntGui();
-    }
-	
-	// Add Files to Search Engine
+	// Add Multiple Files
 	private void addFiles(){
 			JFileChooser fc = new JFileChooser();
 			fc.setDialogTitle("Choose file");
@@ -482,8 +501,16 @@ ArrayList<String> out;
 			}
 			saveData();
 	}
-	
-    // Get status of file(indexed, missing, modified)
+	// Remove Multiple Files
+    private void removeFiles() {
+    	int[] rows = tblMainte.getSelectedRows();
+        if(rows!=null)
+        	for(int i=rows.length-1; i>=0; --i)
+        		keys.remove(rows[i]);
+        saveData();
+        updateMntGui();
+    }
+	// Get status of file(indexed, missing, modified)
     private String getStatus (int i){
         String[] key = keys.get(i).split("__"); 
         String  path = key[1];
@@ -497,8 +524,25 @@ ArrayList<String> out;
             return "Indexed";
         }
     }
-        
-    // Is stop word?
+   
+    // File name format for files ArrayList
+	private String formatKeys(File f) {
+		try{
+			String fName = f.getName();
+			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
+			if(fType.equals(".txt")){
+				String fPath = f.getAbsolutePath();
+				long   fLast = f.lastModified();
+				return new String(fName+"__"+fPath+"__"+fLast);
+			} else{
+        	JOptionPane.showMessageDialog(null, ".txt ONLY");
+        }
+		} catch(NullPointerException e){
+			System.out.println("Please select a file.");
+		}
+		return null;
+	}
+	// Is stop word?
     private boolean isStopWord(String in) {
 		String line;
     	ArrayList<String> stops = new ArrayList<String>();
@@ -517,22 +561,4 @@ ArrayList<String> out;
 			return false;
 		}
     }
-    
-    // File name format for files ArrayList
-	private String formatKeys(File f) {
-		try{
-			String fName = f.getName();
-			String fType = fName.substring(fName.lastIndexOf("."),fName.length());
-			if(fType.equals(".txt")){
-				String fPath = f.getAbsolutePath();
-				long   fLast = f.lastModified();
-				return new String(fName+"__"+fPath+"__"+fLast);
-			} else{
-        	JOptionPane.showMessageDialog(null, ".txt ONLY");
-        }
-		} catch(NullPointerException e){
-			System.out.println("Please select a file.");
-		}
-		return null;
-	}
 }
