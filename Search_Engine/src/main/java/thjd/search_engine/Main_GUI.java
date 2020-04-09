@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -53,20 +52,19 @@ public class Main_GUI{
 
     private 				ArrayList<String>	   keys;
     private HashMap<String, ArrayList<Integer[]>> index;
-	private 				ArrayList<Integer[]>   locs;
 	
 	// Can be used to increase the accuracy of word position in document
 	//private HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>> locsMap;
 	
 	private 		   JFrame frmSearchEngine;
-	private DefaultTableModel tblModel1;
 	private DefaultTableModel tblModel2;
+	private DefaultTableModel tblModel1;
     private			   JTable tblSearch;
     private			   JTable tblMainte;
     private			   JLabel lblSearch3;
     private			   JLabel lblMainte4;
     
-    private byte b;
+    private int mode;
     
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -83,15 +81,12 @@ public class Main_GUI{
 	}
 
 	public Main_GUI() {
+		mode = -1;
 		keys = new ArrayList<String>();
 		index = new HashMap<String, ArrayList<Integer[]>>();
+		frmSearchEngine = new JFrame();
 		// Can be used to increase the accuracy of word position in document
 		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
-		frmSearchEngine = new JFrame();
-		tblModel1 = new DefaultTableModel(0,2);
-		tblModel2 = new DefaultTableModel(0,1);
-		tblSearch = new JTable(tblModel2);
-		tblMainte = new JTable(tblModel1);
 		initialize();
 		loadData();
 	}
@@ -112,26 +107,26 @@ public class Main_GUI{
 		
 		JLabel lblSearch1 = new JLabel("Search Engine");
 		JLabel lblSearch2 = new JLabel("Search Terms:");
-		lblSearch3 = new JLabel("Number of files indexed: " + keys.size());
+			   lblSearch3 = new JLabel("Number of files indexed: " + keys.size());
 		JLabel lblMainte1 = new JLabel("Search Engine - Index Maintenance");
 		JLabel lblMainte2 = new JLabel("File Name");
 		JLabel lblMainte3 = new JLabel("Status");
-		lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
+			   lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
 		JLabel lblMainte5 = new JLabel("Search Engine version 5.2");
 		
-		JButton  btnSrcIt = new JButton("Search");
-		JButton  btnGoSrc = new JButton("Search Engine...");
-		JButton  btnGoMnt = new JButton("Maintenance...");
-		JButton  btnGoAbt = new JButton("About...");
-		JButton  btnAddFi = new JButton("Add File...");
-		JButton  btnRebil = new JButton("Rebuild Out-of-date");
-		JButton  btnRmvFi = new JButton("Remove Selected Files");
+		JButton btnSrcIt = new JButton("Search");
+		JButton btnGoSrc = new JButton("Search Engine...");
+		JButton btnGoMnt = new JButton("Maintenance...");
+		JButton btnGoAbt = new JButton("About...");
+		JButton btnAddFi = new JButton("Add File...");
+		JButton btnRebil = new JButton("Rebuild Out-of-date");
+		JButton btnRmvFi = new JButton("Remove Selected Files");
 		
 		JRadioButton rdbSearch1 = new JRadioButton("All Search Terms");
 		JRadioButton rdbSearch2 = new JRadioButton("Any Search Terms");
 		JRadioButton rdbSearch3 = new JRadioButton("Exact Phrase");
 		
-		JTextField	 txtSearch1 = new JTextField(50);
+		JTextField txtSearch1 = new JTextField(50);
 
 		final CardLayout cl = new CardLayout(0, 0);
 		final  Container  c = frmSearchEngine.getContentPane();
@@ -140,12 +135,17 @@ public class Main_GUI{
 		frmSearchEngine.setBounds(100, 100, LOAD_WIDTH, LOAD_HEIGHT);
 		frmSearchEngine.setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
 		frmSearchEngine.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
+		tblModel1 = new DefaultTableModel(0,2);
+		tblModel2 = new DefaultTableModel(0,2);
+		tblSearch = new JTable(tblModel1);
+		tblMainte = new JTable(tblModel2);
 		tblSearch.setTableHeader(null);
 		tblMainte.setTableHeader(null);
-		
 		pnlSrc2.setViewportView(tblSearch);
 		pnlMnt3.setViewportView(tblMainte);
+		
+		rdbSearch1.setSelected(true);
 		
 		c.setLayout(cl);
 		pnlSearch.setLayout(new MigLayout("", "[784px,grow]", "[120px][120px,grow][0]"));
@@ -242,7 +242,7 @@ public class Main_GUI{
 				rdbSearch1.setSelected(true);
 				rdbSearch2.setSelected(false);
 				rdbSearch3.setSelected(false);
-				b = -1;
+				mode = -1;
 			}
 		});
 		rdbSearch2.addActionListener(new ActionListener() {
@@ -250,7 +250,7 @@ public class Main_GUI{
 				rdbSearch2.setSelected(true);
 				rdbSearch1.setSelected(false);
 				rdbSearch3.setSelected(false);
-				b = 0;
+				mode = 0;
 			}
 		});
 		rdbSearch3.addActionListener(new ActionListener() {
@@ -258,7 +258,7 @@ public class Main_GUI{
 				rdbSearch3.setSelected(true);
 				rdbSearch1.setSelected(false);
 				rdbSearch2.setSelected(false);
-				b = 1;
+				mode = 1;
 			}
 		});
 	}
@@ -275,33 +275,29 @@ public class Main_GUI{
 
 	// Update Maintenance GUI
     private void updateMntGui(){
-    	// Clear GUI
-    	tblModel1.setRowCount(0);
-    	// Update GUI
+    	tblModel2.setRowCount(0);
         for(int i=0; i<keys.size(); i++){
             String status = getStatus(i);
         	String[]   in = keys.get(i).split("__");
-        	tblModel1.addRow(new Object[] {in[1],status});
+        	tblModel2.addRow(new Object[] {in[1],status});
         }
 		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
 		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
     }
 	// Update Search GUI
     private void updateSrcGui(Set<Integer> in){
-    	// Clear GUI
-    	tblModel2.setRowCount(0);
-    	// Update GUI
+    	tblModel1.setRowCount(0);
     	for(Integer i:in) {
-    		tblModel2.addRow(new Object[] {getPath(i)});
+    		tblModel1.addRow(new Object[] {getPathFromKeys(i),i});
     	}
     }
-    private String getPath(int in) { return keys.get(in).split("__")[1]; }
 	// Add file to index
-	private void indexFile(File f){
+	private void indexFile(File f, int i){
 		//int col, row;
 		int pos;
 		String in;
 		ArrayList<String> out;
+		ArrayList<Integer[]> locs;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			//row = 0;
@@ -315,7 +311,7 @@ public class Main_GUI{
 					} else {
 						locs = index.get(word);
 					}
-					locs.add(new Integer[]{keys.size()-1,pos});
+					locs.add(new Integer[]{i,pos});
 					// locsMap.put(locs, new ArrayList<Integer[]>());
 					index.put(word, locs);
 					++pos;
@@ -331,7 +327,6 @@ public class Main_GUI{
 	}
 	// .split("\\s+") & .trim() & .toLowerCase()
 	private ArrayList<String> makeOver(String line) {
-		int	i = 0;
 		String[] in;
 		ArrayList<String> out = new ArrayList<String>();
 		in = line.trim().split("\\s+");
@@ -345,60 +340,47 @@ public class Main_GUI{
 		}
 		return out;
 	}
-	// ALL Search Logic full array then remove 1 by 1
+
+	// AND Search Logic
 	private Set<Integer> allSearch(ArrayList<String> in) {
 		Set<Integer> out = new HashSet<Integer>();
-		// Walk Search Terms
+		Set<Integer> docs = new HashSet<Integer>();
+		ArrayList<Integer[]> locs;
+		for(int b=0; b<keys.size();++b)
+			out.add(b);
 		for(String s:in) {
-			// If any term is not in the index
-			if(!index.containsKey(s)) {
-				// get that word's loc map
+			if(index.containsKey(s)) {
 				locs = index.get(s);
-				// Walk the locs
-				for(Integer[] k:locs) {
-					// If docID is NOT in Set is
-					if(!out.contains(k[0])) {
-						// Add it to the Set {docID,pos}
-						out.add(k[0]);
-					}// !is.contains(k[0])
-				}// Integer[] k:locs
-			}// index.containsKey(s)
-		}// Strings:out
+				for(Integer[] k:locs)
+					docs.add(k[0]);
+				out.retainAll(docs);
+			}
+			docs.clear();
+		}
 		return out;
 	}
 	// OR Search Logic
 	private Set<Integer> anySearch(ArrayList<String> in) {
 		Set<Integer> out = new HashSet<Integer>();
-		// Walk Search Terms
-		for(String s:in) {
-			// If term is in index
+		ArrayList<Integer[]> locs;
+		for(String s:in)
 			if(index.containsKey(s)) {
-				// get that word's loc map
 				locs = index.get(s);
-				// Walk the locs
-				for(Integer[] k:locs) {
-					// If docID is NOT in Set out
-					if(!out.contains(k[0])) {
-						// Add it {docID}
-						out.add(k[0]);
-					}// !is.contains(k[0])
-				}// Integer[] k:locs
-			}// index.containsKey(s)
-		}// Strings:out
+				for(Integer[] k:locs)
+					out.add(k[0]);
+			}
 		return out;
 	}
     // Run Search Function
-	private void runSearch(String in) {
+	void runSearch(String in) {
 		ArrayList<String> text = makeOver(in);
-		
-		if(b==-1) // "All" RdBtn Selected
+		if(mode==-1) // "All" RdBtn Selected
 			updateSrcGui(allSearch(text));
-		if(b==0) // "Any" RdBtn Selected
+		if(mode==0) // "Any" RdBtn Selected
 			updateSrcGui(anySearch(text));
-		if(b==1) { // "Phrase" RdBtn Selected
+		if(mode==1) { // "Phrase" RdBtn Selected
 			//updateSrcGui(phrSearch(text));
 		}
-		
 	}// void runSearch(String)
     
     private void saveData() {
@@ -454,6 +436,7 @@ public class Main_GUI{
 	}
 	// Load index from file
 	private void loadIndex() {
+		ArrayList<Integer[]> locs;
 		String line;
 		String[] in;
 		try {
@@ -485,8 +468,8 @@ public class Main_GUI{
 				String out = formatKeys(f);
 				if(!keys.contains(out)){
 					keys.add(out);
-					indexFile(f);
-		        	tblModel1.addRow(new Object[] {f.getPath(),"Indexed"});
+					indexFile(f,keys.size()-1);
+		        	tblModel2.addRow(new Object[] {f.getPath(),"Indexed"});
 		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
 		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
 				}
@@ -507,26 +490,24 @@ public class Main_GUI{
     }
     // Rebuild Index and Save
     private void buildIndex() {
-    	for(String s:keys) {
-            String[] key = s.split("__");
-            indexFile(new File(key[1]));
+    	for(int i=0; i<keys.size();++i) {
+            indexFile(new File(getPathFromKeys(i)),i);
     	}
     }
 	// Get status of file(indexed, missing, modified)
-    private String getStatus (int i){
-        String[] key = keys.get(i).split("__"); 
-        String  path = key[1];
-        File f = new File(path);
+    private String getStatus(int i){
+        File f = new File(getPathFromKeys(i));
         if (!f.exists()){
             return "File not found";
-        } else if (f.lastModified() != 
-                Long.parseLong(key[2]) ){
+        } else if (f.lastModified()!=Long.parseLong(getLModFromKeys(i))){
             return "File Modified";
         } else {
             return "Indexed";
         }
     }
-   
+
+    private String getPathFromKeys(int in) { return keys.get(in).split("__")[1]; }
+    private String getLModFromKeys(int in) { return keys.get(in).split("__")[2]; }
     // File name format for files ArrayList
 	private String formatKeys(File f) {
 		try{
