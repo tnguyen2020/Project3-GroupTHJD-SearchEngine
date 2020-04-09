@@ -112,7 +112,7 @@ public class Main_GUI{
 		JLabel lblMainte2 = new JLabel("File Name");
 		JLabel lblMainte3 = new JLabel("Status");
 			   lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
-		JLabel lblMainte5 = new JLabel("Search Engine version 5.2");
+		JLabel lblMainte5 = new JLabel("Search Engine version 5.4");
 		
 		JButton btnSrcIt = new JButton("Search");
 		JButton btnGoSrc = new JButton("Search Engine...");
