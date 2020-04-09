@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -44,11 +45,7 @@ import javax.swing.table.DefaultTableModel;
 import net.miginfocom.swing.MigLayout;
 
 public class Main_GUI{
-/*
- * 
- * YOU WERE WORKING ON ALL SEARCH
- * 
- */
+	
 	private static int LOAD_WIDTH  = 800;
 	private static int LOAD_HEIGHT = 400;
 	private static int MIN_WIDTH   = 670;
@@ -92,7 +89,7 @@ public class Main_GUI{
 		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
 		frmSearchEngine = new JFrame();
 		tblModel1 = new DefaultTableModel(0,2);
-		tblModel2 = new DefaultTableModel(0,2);
+		tblModel2 = new DefaultTableModel(0,1);
 		tblSearch = new JTable(tblModel2);
 		tblMainte = new JTable(tblModel1);
 		initialize();
@@ -229,7 +226,10 @@ public class Main_GUI{
 		});
 		btnRebil.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				loadData();
+		    	loadKeys();
+		    	loadIndex();
+		    	saveData();
+		    	updateMntGui();
 			}
 		});
 		btnRmvFi.addActionListener(new ActionListener() {
@@ -287,19 +287,15 @@ public class Main_GUI{
 		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
     }
 	// Update Search GUI
-    private void updateSrcGui(){
+    private void updateSrcGui(Set<Integer> in){
     	// Clear GUI
     	tblModel2.setRowCount(0);
     	// Update GUI
-        for(int i=0; i<keys.size(); i++){
-            String status = getStatus(i);
-        	String[]   in = keys.get(i).split("__");
-        	tblModel1.addRow(new Object[] {in[1],status});
-        }
-		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+    	for(Integer i:in) {
+    		tblModel2.addRow(new Object[] {getPath(i)});
+    	}
     }
-
+    private String getPath(int in) { return keys.get(in).split("__")[1]; }
 	// Add file to index
 	private void indexFile(File f){
 		//int col, row;
@@ -334,7 +330,7 @@ public class Main_GUI{
 		}
 	}
 	// .split("\\s+") & .trim() & .toLowerCase()
-	private ArrayList<String>makeOver(String line) {
+	private ArrayList<String> makeOver(String line) {
 		int	i = 0;
 		String[] in;
 		ArrayList<String> out = new ArrayList<String>();
@@ -350,7 +346,8 @@ public class Main_GUI{
 		return out;
 	}
 	// ALL Search Logic full array then remove 1 by 1
-	private Set<Integer>allSearch(ArrayList<String> in, Set<Integer> out) {
+	private Set<Integer> allSearch(ArrayList<String> in) {
+		Set<Integer> out = new HashSet<Integer>();
 		// Walk Search Terms
 		for(String s:in) {
 			// If any term is not in the index
@@ -370,7 +367,8 @@ public class Main_GUI{
 		return out;
 	}
 	// OR Search Logic
-	private Set<Integer> anySearch(ArrayList<String> in, Set<Integer> out) {
+	private Set<Integer> anySearch(ArrayList<String> in) {
+		Set<Integer> out = new HashSet<Integer>();
 		// Walk Search Terms
 		for(String s:in) {
 			// If term is in index
@@ -379,9 +377,9 @@ public class Main_GUI{
 				locs = index.get(s);
 				// Walk the locs
 				for(Integer[] k:locs) {
-					// If docID is NOT in Set is
+					// If docID is NOT in Set out
 					if(!out.contains(k[0])) {
-						// Add it to the Set {docID,pos}
+						// Add it {docID}
 						out.add(k[0]);
 					}// !is.contains(k[0])
 				}// Integer[] k:locs
@@ -390,22 +388,17 @@ public class Main_GUI{
 		return out;
 	}
     // Run Search Function
-	private Set<Integer> runSearch(String in) {
-		Set<Integer> out = new HashSet<Integer>();
+	private void runSearch(String in) {
 		ArrayList<String> text = makeOver(in);
-		// "All" RdBtn Selected
-		if(b==-1)
-			return allSearch(text, out);
-		// "Any" RdBtn Selected
-		if(b==0)
-			return anySearch(text, out);
-		// "Phrase" RdBtn Selected
-		if(b==1) {
-			//return phrSearch(text, out);
-			
 		
-		updateSrcGui();
-		return null;
+		if(b==-1) // "All" RdBtn Selected
+			updateSrcGui(allSearch(text));
+		if(b==0) // "Any" RdBtn Selected
+			updateSrcGui(anySearch(text));
+		if(b==1) { // "Phrase" RdBtn Selected
+			//updateSrcGui(phrSearch(text));
+		}
+		
 	}// void runSearch(String)
     
     private void saveData() {
@@ -445,7 +438,6 @@ public class Main_GUI{
     private void loadData() {
     	loadKeys();
     	loadIndex();
-    	saveData();
     	updateMntGui();
     }
 	// Load keys from file
@@ -504,11 +496,21 @@ public class Main_GUI{
 	// Remove Multiple Files
     private void removeFiles() {
     	int[] rows = tblMainte.getSelectedRows();
-        if(rows!=null)
+        if(rows!=null) {
         	for(int i=rows.length-1; i>=0; --i)
         		keys.remove(rows[i]);
+        	index.clear();
+        	buildIndex();
+        }
         saveData();
         updateMntGui();
+    }
+    // Rebuild Index and Save
+    private void buildIndex() {
+    	for(String s:keys) {
+            String[] key = s.split("__");
+            indexFile(new File(key[1]));
+    	}
     }
 	// Get status of file(indexed, missing, modified)
     private String getStatus (int i){
