@@ -53,9 +53,6 @@ public class Main_GUI{
     private 				ArrayList<String>	   keys;
     private HashMap<String, ArrayList<Integer[]>> index;
 	
-	// Can be used to increase the accuracy of word position in document
-	//private HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>> locsMap;
-	
 	private 		   JFrame frmSearchEngine;
 	private DefaultTableModel tblModel2;
 	private DefaultTableModel tblModel1;
@@ -68,6 +65,7 @@ public class Main_GUI{
     
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					setUIFont(new javax.swing.plaf.FontUIResource("Courier New", Font.BOLD, 14));
@@ -85,10 +83,10 @@ public class Main_GUI{
 		keys = new ArrayList<String>();
 		index = new HashMap<String, ArrayList<Integer[]>>();
 		frmSearchEngine = new JFrame();
-		// Can be used to increase the accuracy of word position in document
-		//locsMap = new HashMap<ArrayList<Integer[]>,ArrayList<Integer[]>>();
 		initialize();
-		loadData();
+    	loadKeys();
+    	loadIndex();
+    	updateMntGui();
 	}
 
 	private void initialize() {		
@@ -112,7 +110,7 @@ public class Main_GUI{
 		JLabel lblMainte2 = new JLabel("File Name");
 		JLabel lblMainte3 = new JLabel("Status");
 			   lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
-		JLabel lblMainte5 = new JLabel("Search Engine version 5.4");
+		JLabel lblMainte5 = new JLabel("Search Engine version 5.5");
 		
 		JButton btnSrcIt = new JButton("Search");
 		JButton btnGoSrc = new JButton("Search Engine...");
@@ -159,8 +157,8 @@ public class Main_GUI{
 		lblSearch1.setFont(new Font("Courier New", Font.BOLD, 32));
 		lblMainte1.setFont(new Font("Courier New", Font.BOLD, 32));
 		
-		pnlMainte2_1.setBorder(new MatteBorder(1, 1, 1, 1, (Color) Color.GRAY));
-		pnlMainte2_2.setBorder(new MatteBorder(1, 1, 1, 1, (Color) Color.GRAY));
+		pnlMainte2_1.setBorder(new MatteBorder(1, 1, 1, 1, Color.GRAY));
+		pnlMainte2_2.setBorder(new MatteBorder(1, 1, 1, 1, Color.GRAY));
 		
 		c.add(pnlSearch, "Search");
 		c.add(pnlMainte, "Mainte");
@@ -198,21 +196,25 @@ public class Main_GUI{
 		
 
 		btnSrcIt.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				runSearch(txtSearch1.getText());
 			}
 		});
 		btnGoMnt.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				cl.show(c, "Mainte");
 			}
 		});
 		btnGoSrc.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				cl.show(c, "Search");
 			}
 		});
 		btnGoAbt.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 			    Desktop.getDesktop().browse(new URL("https://github.com/tnguyen2020/Project3-GroupTHJD-SearchEngine").toURI());
@@ -220,24 +222,29 @@ public class Main_GUI{
 			}
 		});
 		btnAddFi.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				addFiles();
 			}
 		});
 		btnRebil.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 		    	loadKeys();
 		    	loadIndex();
-		    	saveData();
+				saveKeys();
+				saveIndex();
 		    	updateMntGui();
 			}
 		});
 		btnRmvFi.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				removeFiles();
 			}
 		});
 		rdbSearch1.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				rdbSearch1.setSelected(true);
 				rdbSearch2.setSelected(false);
@@ -246,6 +253,7 @@ public class Main_GUI{
 			}
 		});
 		rdbSearch2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				rdbSearch2.setSelected(true);
 				rdbSearch1.setSelected(false);
@@ -254,6 +262,7 @@ public class Main_GUI{
 			}
 		});
 		rdbSearch3.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				rdbSearch3.setSelected(true);
 				rdbSearch1.setSelected(false);
@@ -263,84 +272,27 @@ public class Main_GUI{
 		});
 	}
 	
-	public static void setUIFont(FontUIResource f) {
-	    Enumeration<Object> keys = UIManager.getDefaults().keys();
-	    while (keys.hasMoreElements()) {
-	        Object key = keys.nextElement();
-	        Object value = UIManager.get(key);
-	        if (value instanceof FontUIResource)
-	            UIManager.put(key, f);
-	    }
+    // Run Search Function
+	void runSearch(String in) {
+		ArrayList<String> text = makeOver(in);
+		if(mode==-1)updateSrcGui(allSearch(text));
+		if(mode==0)	updateSrcGui(anySearch(text));
+		if(mode==1)	updateSrcGui(phrSearch(text));
 	}
-
-	// Update Maintenance GUI
-    private void updateMntGui(){
-    	tblModel2.setRowCount(0);
-        for(int i=0; i<keys.size(); i++){
-            String status = getStatus(i);
-        	String[]   in = keys.get(i).split("__");
-        	tblModel2.addRow(new Object[] {in[1],status});
-        }
-		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
-    }
-	// Update Search GUI
-    private void updateSrcGui(Set<Integer> in){
-    	tblModel1.setRowCount(0);
-    	for(Integer i:in) {
-    		tblModel1.addRow(new Object[] {getPathFromKeys(i),i});
-    	}
-    }
-	// Add file to index
-	private void indexFile(File f, int i){
-		//int col, row;
-		int pos;
-		String in;
-		ArrayList<String> out;
+	
+	// OR Search Logic
+	private Set<Integer> anySearch(ArrayList<String> in) {
+		Set<Integer> out = new HashSet<Integer>();
 		ArrayList<Integer[]> locs;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(f));
-			//row = 0;
-			pos = 0;
-			while((in=br.readLine())!=null){
-				//col = 0;
-				out = makeOver(in);
-				for(String word:out) {
-					if(!index.containsKey(word)) {
-						locs = new ArrayList<Integer[]>();
-					} else {
-						locs = index.get(word);
-					}
-					locs.add(new Integer[]{i,pos});
-					// locsMap.put(locs, new ArrayList<Integer[]>());
-					index.put(word, locs);
-					++pos;
-					//++col;
-				}
-				//++row;
+		for(String s:in)
+			if(index.containsKey(s)) {
+				locs = index.get(s);
+				for(Integer[] k:locs)
+					out.add(k[0]);
 			}
-			br.close();
-		} catch (IOException e) {
-			System.out.println("Unknown Error");
-			e.printStackTrace();
-		}
-	}
-	// .split("\\s+") & .trim() & .toLowerCase()
-	private ArrayList<String> makeOver(String line) {
-		String[] in;
-		ArrayList<String> out = new ArrayList<String>();
-		in = line.trim().split("\\s+");
-		for(String word:in) {
-			word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
-			if(!word.equals("")) {
-				if(!isStopWord(word)) {
-					out.add(word);
-				}
-			}
-		}
 		return out;
 	}
-
+	
 	// AND Search Logic
 	private Set<Integer> allSearch(ArrayList<String> in) {
 		Set<Integer> out = new HashSet<Integer>();
@@ -359,34 +311,96 @@ public class Main_GUI{
 		}
 		return out;
 	}
-	// OR Search Logic
-	private Set<Integer> anySearch(ArrayList<String> in) {
+	
+	private Set<Integer> phrSearch(ArrayList<String> in){
 		Set<Integer> out = new HashSet<Integer>();
+		ArrayList<Integer[]> hocs = new ArrayList<Integer[]>();
+		ArrayList<Integer[]> docs = null;
 		ArrayList<Integer[]> locs;
 		for(String s:in)
-			if(index.containsKey(s)) {
+			if(index.containsKey(s)){
 				locs = index.get(s);
-				for(Integer[] k:locs)
-					out.add(k[0]);
+				if(docs==null)
+					docs = locs;
+				else{
+					for(Integer[] i:docs)
+						for(Integer[] j:locs)
+							if((i[0]==j[0])&&((i[1]+1)==j[1]))
+								hocs.add(new Integer[] {j[0],j[1]});
+					docs = hocs;
+					hocs = new ArrayList<Integer[]>();
+				}
 			}
+		for(Integer[] i:docs)
+			out.add(i[0]);
 		return out;
 	}
-    // Run Search Function
-	void runSearch(String in) {
-		ArrayList<String> text = makeOver(in);
-		if(mode==-1) // "All" RdBtn Selected
-			updateSrcGui(allSearch(text));
-		if(mode==0) // "Any" RdBtn Selected
-			updateSrcGui(anySearch(text));
-		if(mode==1) { // "Phrase" RdBtn Selected
-			//updateSrcGui(phrSearch(text));
-		}
-	}// void runSearch(String)
+	
+	// Add Multiple Files
+	private void addFiles(){
+			JFileChooser fc = new JFileChooser();
+			fc.setDialogTitle("Choose file");
+			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
+			fc.setMultiSelectionEnabled(true);
+			fc.showOpenDialog(null);
+			File[] fs = fc.getSelectedFiles();
+			for(File f:fs) {
+				String out = formatKeys(f);
+				if(!keys.contains(out)){
+					keys.add(out);
+					indexFile(f,keys.size()-1);
+		        	tblModel2.addRow(new Object[] {f.getPath(),"Indexed"});
+		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+				}
+			}
+			saveKeys();
+			saveIndex();
+	}
     
-    private void saveData() {
-    	saveKeys();
-        saveIndex();
+	// Add file to index
+	private void indexFile(File f, int i){
+		int pos;
+		String in;
+		ArrayList<String> out;
+		ArrayList<Integer[]> locs;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(f));
+			pos = 0;
+			while((in=br.readLine())!=null){
+				out = makeOver(in);
+				for(String word:out) {
+					if(!index.containsKey(word)) {
+						locs = new ArrayList<Integer[]>();
+					} else {
+						locs = index.get(word);
+					}
+					locs.add(new Integer[]{i,pos});
+					index.put(word, locs);
+					++pos;
+				}
+			}
+			br.close();
+		} catch (IOException e) {
+			System.out.println("Unknown Error");
+			e.printStackTrace();
+		}
+	}
+	
+	// Remove Multiple Files
+    private void removeFiles() {
+    	int[] rows = tblMainte.getSelectedRows();
+        if(rows!=null) {
+        	for(int i=rows.length-1; i>=0; --i)
+        		keys.remove(rows[i]);
+        	index.clear();
+        	buildIndex();
+        }
+		saveKeys();
+		saveIndex();
+        updateMntGui();
     }
+	
     // Write keys to file
     private void saveKeys() {
     	try {
@@ -399,6 +413,7 @@ public class Main_GUI{
 			System.out.println("Error Writing to File!");
 		}
     }
+    
     // Write index to file
     private void saveIndex() {
     	try {
@@ -414,14 +429,8 @@ public class Main_GUI{
 		} catch (IOException e) {
 			System.out.println("Error Writing to File!");
 		}
-    	
     }
-    // Startup/Rebuild Button Pressed
-    private void loadData() {
-    	loadKeys();
-    	loadIndex();
-    	updateMntGui();
-    }
+    
 	// Load keys from file
 	private void loadKeys() {
 		try {
@@ -432,8 +441,8 @@ public class Main_GUI{
 		} catch (IOException e) {
 			System.out.println("Keys File Missing!");
 		}
-		
 	}
+	
 	// Load index from file
 	private void loadIndex() {
 		ArrayList<Integer[]> locs;
@@ -456,44 +465,76 @@ public class Main_GUI{
 		}
 		
 	}
-	// Add Multiple Files
-	private void addFiles(){
-			JFileChooser fc = new JFileChooser();
-			fc.setDialogTitle("Choose file");
-			fc.setFileFilter(new FileTypeFilter(".txt", "Plain Text File"));
-			fc.setMultiSelectionEnabled(true);
-			fc.showOpenDialog(null);
-			File[] fs = fc.getSelectedFiles();
-			for(File f:fs) {
-				String out = formatKeys(f);
-				if(!keys.contains(out)){
-					keys.add(out);
-					indexFile(f,keys.size()-1);
-		        	tblModel2.addRow(new Object[] {f.getPath(),"Indexed"});
-		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
-				}
-			}
-			saveData();
-	}
-	// Remove Multiple Files
-    private void removeFiles() {
-    	int[] rows = tblMainte.getSelectedRows();
-        if(rows!=null) {
-        	for(int i=rows.length-1; i>=0; --i)
-        		keys.remove(rows[i]);
-        	index.clear();
-        	buildIndex();
-        }
-        saveData();
-        updateMntGui();
-    }
-    // Rebuild Index and Save
+    
+    // Rebuild Index
     private void buildIndex() {
     	for(int i=0; i<keys.size();++i) {
             indexFile(new File(getPathFromKeys(i)),i);
     	}
     }
+    
+	// Update Search GUI
+    private void updateSrcGui(Set<Integer> in){
+    	tblModel1.setRowCount(0);
+    	for(Integer i:in) {
+    		tblModel1.addRow(new Object[] {getPathFromKeys(i),i});
+    	}
+    }
+
+	// Update Maintenance GUI
+    private void updateMntGui(){
+    	tblModel2.setRowCount(0);
+        for(int i=0; i<keys.size(); i++){
+            String status = getStatus(i);
+        	String[]   in = keys.get(i).split("__");
+        	tblModel2.addRow(new Object[] {in[1],status});
+        }
+		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
+		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+    }
+	
+	// Cleans and splits a line of text
+	private ArrayList<String> makeOver(String line) {
+		String[] in;
+		ArrayList<String> out = new ArrayList<String>();
+		in = line.trim().split("\\s+");
+		for(String word:in) {
+			word = word.replaceAll("[^a-zA-Z]", "").toLowerCase();
+			if(!word.equals("")) {
+				if(!isStopWord(word)) {
+					out.add(word);
+				}
+			}
+		}
+		return out;
+	}
+	
+	// Is stop word?
+    private boolean isStopWord(String in) {
+		String line;
+    	ArrayList<String> stops = new ArrayList<String>();
+    	try {
+			BufferedReader br = new BufferedReader(new FileReader("stopWords.txt"));
+			while((line=br.readLine())!=null) {
+				stops.add(line);
+			}
+			br.close();
+			if(stops.contains(in))
+				return true;
+			else
+				return false;
+		} catch(IOException e){
+			System.out.println("Stop Words File Missing");
+			return false;
+		}
+    }
+    
+    // Get path of file from keys
+    private String getPathFromKeys(int in) { return keys.get(in).split("__")[1]; }
+    
+    // Get Last Modified time-stamp from keys
+    private String getLModFromKeys(int in) { return keys.get(in).split("__")[2]; }
+    
 	// Get status of file(indexed, missing, modified)
     private String getStatus(int i){
         File f = new File(getPathFromKeys(i));
@@ -505,9 +546,7 @@ public class Main_GUI{
             return "Indexed";
         }
     }
-
-    private String getPathFromKeys(int in) { return keys.get(in).split("__")[1]; }
-    private String getLModFromKeys(int in) { return keys.get(in).split("__")[2]; }
+    
     // File name format for files ArrayList
 	private String formatKeys(File f) {
 		try{
@@ -525,23 +564,16 @@ public class Main_GUI{
 		}
 		return null;
 	}
-	// Is stop word?
-    private boolean isStopWord(String in) {
-		String line;
-    	ArrayList<String> stops = new ArrayList<String>();
-    	try {
-			BufferedReader br = new BufferedReader(new FileReader("stopWords.txt"));
-			while((line=br.readLine())!=null) {
-				stops.add(line);
-			}
-			br.close();
-			if(stops.contains(in))
-				return true;
-			else
-				return false;
-		} catch (IOException e) {
-			System.out.println("Stop Words File Missing");
-			return false;
-		}
-    }
+	
+	// Set Global Font for Application
+	public static void setUIFont(FontUIResource f) {
+	    Enumeration<Object> keys = UIManager.getDefaults().keys();
+	    while (keys.hasMoreElements()) {
+	        Object key = keys.nextElement();
+	        Object value = UIManager.get(key);
+	        if (value instanceof FontUIResource)
+	            UIManager.put(key, f);
+	    }
+	}
+    
 }
