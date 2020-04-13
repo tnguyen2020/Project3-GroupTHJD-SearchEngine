@@ -6,6 +6,7 @@
 package thjd.search_engine;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +31,8 @@ public class Main_GUI extends javax.swing.JFrame {
     ArrayList<String> index_list = new ArrayList<>();
     // Creates Index array list object. index_list holds the words of Words.txt
     ArrayList<String> words_list = new ArrayList<>();
-    
+    // Creates Search array list object. search_list holds the search words
+    ArrayList<String> search_list = new ArrayList<>();
     
     public Main_GUI() {
         initComponents();
@@ -177,9 +179,16 @@ public class Main_GUI extends javax.swing.JFrame {
                 // Appends list in format word__indexID__positionID
                 int word_position = 0; // word position of file
                 while (sc.hasNext()){
-                    String word = sc.next();
-                    words_list.add(word + "__" + indexID + "__" + word_position);
-                    word_position ++;
+                    // Reads next word and removes non-letters and non-digits
+                    String word = (sc.next()).replaceAll("[^a-zA-Z0-9]", "")
+                            .toLowerCase();
+                    // Adds words to list
+                    if (!word.equals("")){
+                        words_list.add(word + "__" + indexID + "__" + 
+                                word_position);
+                        word_position ++;
+                    }
+                    
                 }
             }
         } catch (FileNotFoundException e) {
@@ -202,6 +211,39 @@ public class Main_GUI extends javax.swing.JFrame {
         }
     }
     
+    // Or Search
+    private void Or_Search (ArrayList<String> search_list){
+        search_list.clear(); // Clears list
+        MatchTextArea.setText("Matched Files: \n"); // Field Header
+        
+        // Build search words from the text input, conditions the, builds list
+        String[] search_words = SearchTextField.getText().
+                replaceAll("[^a-zA-Z0-9\\s]", "").toLowerCase().split(" ");
+        for (int indexID = 0; indexID < search_words.length; indexID++){
+            if (!search_words[indexID].equals("")){
+                search_list.add(search_words[indexID]);
+            }
+        }
+        
+        // Match search_list with words_list
+        for (int indexID = 0; indexID < words_list.size(); indexID++){
+            // Gets the word from words.txt, removing index id and position id
+            String index_word = words_list.get(indexID);
+            String[] string_array = index_word.split("__");
+            index_word = string_array[0];
+            for (String search_word : search_list){
+                // Condition check for word match
+                if (search_word.equals(index_word)){
+                    // Finds the absolute path of matched word
+                    String[] index_entry = index_list.
+                            get(Integer.parseInt(string_array[1])).split("__");
+                    // Outputs absolute path in text field
+                    MatchTextArea.append(index_entry[1] +"\n");
+
+                }
+            }
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -214,10 +256,10 @@ public class Main_GUI extends javax.swing.JFrame {
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        SearchTextField = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
+        MatchTextArea = new javax.swing.JTextArea();
+        Search = new javax.swing.JButton();
         jRadioButton1 = new javax.swing.JRadioButton();
         jRadioButton2 = new javax.swing.JRadioButton();
         jRadioButton3 = new javax.swing.JRadioButton();
@@ -260,11 +302,16 @@ public class Main_GUI extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 48)); // NOI18N
         jLabel1.setText("Search Engine");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        MatchTextArea.setColumns(20);
+        MatchTextArea.setRows(5);
+        jScrollPane1.setViewportView(MatchTextArea);
 
-        jButton1.setText("Search");
+        Search.setText("Search");
+        Search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SearchActionPerformed(evt);
+            }
+        });
 
         jRadioButton1.setText("All of the Search Terms");
 
@@ -290,11 +337,11 @@ public class Main_GUI extends javax.swing.JFrame {
                                         .addGap(27, 27, 27))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addGap(191, 191, 191)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(Search, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                 .addComponent(jRadioButton3))
                             .addComponent(jScrollPane1)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(SearchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(198, 198, 198)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -306,14 +353,14 @@ public class Main_GUI extends javax.swing.JFrame {
                 .addGap(12, 12, 12)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(SearchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jRadioButton1)
                     .addComponent(jRadioButton2)
                     .addComponent(jRadioButton3))
                 .addGap(12, 12, 12)
-                .addComponent(jButton1)
+                .addComponent(Search)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 297, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 27, Short.MAX_VALUE))
@@ -528,6 +575,11 @@ public class Main_GUI extends javax.swing.JFrame {
         Update();
         
     }//GEN-LAST:event_formWindowActivated
+
+    private void SearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchActionPerformed
+        // TODO add your handling code here:
+        Or_Search(search_list);
+    }//GEN-LAST:event_SearchActionPerformed
     
     
     
@@ -569,9 +621,11 @@ public class Main_GUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Add_File_Button;
+    private javax.swing.JTextArea MatchTextArea;
     private javax.swing.JButton Rebuild_Button;
     private javax.swing.JButton Remove_File_Button;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton Search;
+    private javax.swing.JTextField SearchTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -586,8 +640,6 @@ public class Main_GUI extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTable tbl_index;
     // End of variables declaration//GEN-END:variables
 }
