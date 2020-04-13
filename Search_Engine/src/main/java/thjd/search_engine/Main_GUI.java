@@ -1,3 +1,23 @@
+/*
+   Local Search Engine
+   Java II Project 5 Submission
+   Professor Wayne Pollock
+   Team: Thi, Hamzah, Jordan, Diane
+   
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package thjd.search_engine;
 
 import java.awt.CardLayout;
@@ -61,6 +81,7 @@ public class Main_GUI{
     private			   JLabel lblSearch3;
     private			   JLabel lblMainte4;
     
+    private String idxLbl;
     private int mode;
     
 	public static void main(String[] args) {
@@ -79,17 +100,21 @@ public class Main_GUI{
 	}
 
 	public Main_GUI() {
-		mode = -1;
-		keys = new ArrayList<String>();
-		index = new HashMap<String, ArrayList<Integer[]>>();
-		frmSearchEngine = new JFrame();
-		initialize();
+		initializeDat();
+		initializeGui();
     	loadKeys();
     	loadIndex();
     	updateMntGui();
 	}
+	
+	private void initializeDat() {
+		frmSearchEngine = new JFrame();
+		keys = new ArrayList<String>();
+		index = new HashMap<String, ArrayList<Integer[]>>();
+		mode = -1;
+	}
 
-	private void initialize() {		
+	private void initializeGui() {
 		JPanel    pnlSearch = new JPanel();
 		JPanel    pnlMainte = new JPanel();
 		JPanel   pnlSearch1 = new JPanel();
@@ -105,11 +130,11 @@ public class Main_GUI{
 		
 		JLabel lblSearch1 = new JLabel("Search Engine");
 		JLabel lblSearch2 = new JLabel("Search Terms:");
-			   lblSearch3 = new JLabel("Number of files indexed: " + keys.size());
+			   lblSearch3 = new JLabel(idxLbl);
 		JLabel lblMainte1 = new JLabel("Search Engine - Index Maintenance");
 		JLabel lblMainte2 = new JLabel("File Name");
 		JLabel lblMainte3 = new JLabel("Status");
-			   lblMainte4 = new JLabel("Number of files indexed: " + keys.size());
+			   lblMainte4 = new JLabel(idxLbl);
 		JLabel lblMainte5 = new JLabel("Search Engine version 5.5");
 		
 		JButton btnSrcIt = new JButton("Search");
@@ -275,9 +300,17 @@ public class Main_GUI{
     // Run Search Function
 	void runSearch(String in) {
 		ArrayList<String> text = makeOver(in);
-		if(mode==-1)updateSrcGui(allSearch(text));
-		if(mode==0)	updateSrcGui(anySearch(text));
-		if(mode==1)	updateSrcGui(phrSearch(text));
+		switch(mode) {
+		case -1:
+			updateSrcGui(allSearch(text));
+			break;
+		case  0:
+			updateSrcGui(anySearch(text));
+			break;
+		case  1:
+			updateSrcGui(phrSearch(text));
+			break;
+		}
 	}
 	
 	// OR Search Logic
@@ -349,9 +382,10 @@ public class Main_GUI{
 				if(!keys.contains(out)){
 					keys.add(out);
 					indexFile(f,keys.size()-1);
-		        	tblModel2.addRow(new Object[] {f.getPath(),"Indexed"});
-		    		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		    		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+		        	tblModel2.addRow(new Object[]{f.getPath(), "Indexed"});
+		            idxLbl = "Number of files indexed: " + keys.size();
+		    		lblSearch3.setText(idxLbl);
+		    		lblMainte4.setText(idxLbl);
 				}
 			}
 			saveKeys();
@@ -403,21 +437,23 @@ public class Main_GUI{
 	
     // Write keys to file
     private void saveKeys() {
+    	String fn = "keys.txt";
     	try {
-			PrintWriter pw = new PrintWriter(new FileWriter("keys.txt"));
+			PrintWriter pw = new PrintWriter(new FileWriter(fn));
             for(int i=0; i<keys.size(); i++){
             	pw.println(keys.get(i));
             }
             pw.close();			
 		} catch (IOException e) {
-			System.out.println("Error Writing to File!");
+			System.out.println("Error Writing to File! ("+fn+")");
 		}
     }
     
     // Write index to file
     private void saveIndex() {
+    	String fn = "index.txt";
     	try {
-			PrintWriter pw = new PrintWriter(new FileWriter("index.txt"));
+			PrintWriter pw = new PrintWriter(new FileWriter(fn));
 			for(String s:index.keySet()) {
 				pw.print(s);
 				for(Integer[] i:index.get(s))
@@ -427,29 +463,31 @@ public class Main_GUI{
 			}
             pw.close();			
 		} catch (IOException e) {
-			System.out.println("Error Writing to File!");
+			System.out.println("Error Writing to File! ("+fn+")");
 		}
     }
     
 	// Load keys from file
 	private void loadKeys() {
+    	String fn = "keys.txt";
 		try {
-			List<String> lines = Files.readAllLines(Paths.get("keys.txt"));
+			List<String> lines = Files.readAllLines(Paths.get(fn));
 			keys.clear();
 			for(String s:lines)
 				keys.add(s);
 		} catch (IOException e) {
-			System.out.println("Keys File Missing!");
+			System.out.println("File Missing! ("+fn+")");
 		}
 	}
 	
 	// Load index from file
 	private void loadIndex() {
+    	String fn = "index.txt";
 		ArrayList<Integer[]> locs;
 		String line;
 		String[] in;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("index.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(fn));
 			index.clear();
 			while((line=br.readLine())!=null){
 				locs = new ArrayList<Integer[]>();
@@ -461,7 +499,7 @@ public class Main_GUI{
 			}
 			br.close();
 		} catch (IOException e) {
-			System.out.println("Index File Missing!");
+			System.out.println("File Missing! ("+fn+")");
 		}
 		
 	}
@@ -489,8 +527,9 @@ public class Main_GUI{
         	String[]   in = keys.get(i).split("__");
         	tblModel2.addRow(new Object[] {in[1],status});
         }
-		lblSearch3.setText(new String("Number of files indexed: " + keys.size()));
-		lblMainte4.setText(new String("Number of files indexed: " + keys.size()));
+        idxLbl = "Number of files indexed: " + keys.size();
+		lblSearch3.setText(idxLbl);
+		lblMainte4.setText(idxLbl);
     }
 	
 	// Cleans and splits a line of text
@@ -511,10 +550,11 @@ public class Main_GUI{
 	
 	// Is stop word?
     private boolean isStopWord(String in) {
+    	String fn = "stopWords.txt";
 		String line;
     	ArrayList<String> stops = new ArrayList<String>();
     	try {
-			BufferedReader br = new BufferedReader(new FileReader("stopWords.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(fn));
 			while((line=br.readLine())!=null) {
 				stops.add(line);
 			}
@@ -524,7 +564,7 @@ public class Main_GUI{
 			else
 				return false;
 		} catch(IOException e){
-			System.out.println("Stop Words File Missing");
+			System.out.println("File Missing! ("+fn+")");
 			return false;
 		}
     }
