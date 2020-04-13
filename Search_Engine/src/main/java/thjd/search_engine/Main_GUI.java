@@ -6,6 +6,9 @@
 package thjd.search_engine;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser; // For adding and saving files
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -24,7 +27,10 @@ public class Main_GUI extends javax.swing.JFrame {
     // Creates table model object
     DefaultTableModel model;
     // Creates Index array list object. index_list holds the lines of index.txt
-    ArrayList<String> index_list = new ArrayList<String>();
+    ArrayList<String> index_list = new ArrayList<>();
+    // Creates Index array list object. index_list holds the words of Words.txt
+    ArrayList<String> words_list = new ArrayList<>();
+    
     
     public Main_GUI() {
         initComponents();
@@ -87,6 +93,8 @@ public class Main_GUI extends javax.swing.JFrame {
             }
             
             pw.close();
+            // Call Words_Builder function
+            Words_Builder(index_list);
         } catch (IOException e) {
             System.out.println("Error!");
         }
@@ -134,11 +142,11 @@ public class Main_GUI extends javax.swing.JFrame {
         
                 // Call update function
                 Update();
+                
             } else {
                 JOptionPane.showMessageDialog(null, "Only text files with .txt "
                         + " extension can be indexed");
             }
-            
         } catch (NullPointerException e){
             System.out.println("Please select a file.");
         }
@@ -151,6 +159,47 @@ public class Main_GUI extends javax.swing.JFrame {
             index_list.remove(tbl_index.getSelectedRow());
         }
         Update();
+    }
+    
+    // Build words from inverted index files into words.txt
+    private void Words_Builder (ArrayList<String> index_list){
+        // Reads words from each indexed file and adds to words_list
+        try {
+            // Clears the words list
+            words_list.clear();
+            // iterate index_list
+            for (int indexID = 0; indexID < index_list.size(); indexID++){
+                // Gets absolute path for each file
+                String[] iteration_split = index_list.get(indexID).split("__");
+                String absolute_path = iteration_split[1];
+                // Reads each file
+                Scanner sc = new Scanner(new File(absolute_path));
+                // Appends list in format word__indexID__positionID
+                int word_position = 0; // word position of file
+                while (sc.hasNext()){
+                    String word = sc.next();
+                    words_list.add(word + "__" + indexID + "__" + word_position);
+                    word_position ++;
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace(); 
+        }
+        
+        // Write words_list to words.txt, deleting all old content in word file
+        try {
+            FileWriter fw = new FileWriter ("words.txt");
+            PrintWriter pw = new PrintWriter(fw);
+            
+            // Prints words_list items per line on words.txt file
+            for (int i = 0; i < words_list.size(); i++){
+                pw.println(words_list.get(i));
+            }
+            
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     /**

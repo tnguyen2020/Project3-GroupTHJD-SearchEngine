@@ -1,0 +1,12 @@
+Hello.__0__0
+My__0__1
+name__0__2
+is__0__3
+Hamzah.__0__4
+I__0__5
+am__0__6
+a__0__7
+computer__0__8
+programmer__0__9
+since__0__10
+2018.__0__11
