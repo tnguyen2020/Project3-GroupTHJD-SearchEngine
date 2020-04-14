@@ -261,6 +261,7 @@ public class Main_GUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -268,9 +269,9 @@ public class Main_GUI extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         MatchTextArea = new javax.swing.JTextArea();
         Search = new javax.swing.JButton();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
+        AndSearchRadio = new javax.swing.JRadioButton();
+        OrSearchRadio = new javax.swing.JRadioButton();
+        PhraseSearchRadio = new javax.swing.JRadioButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -321,11 +322,14 @@ public class Main_GUI extends javax.swing.JFrame {
             }
         });
 
-        jRadioButton1.setText("All of the Search Terms");
+        buttonGroup.add(AndSearchRadio);
+        AndSearchRadio.setText("All of the Search Terms (And)");
 
-        jRadioButton2.setText("Any of the Search Terms");
+        buttonGroup.add(OrSearchRadio);
+        OrSearchRadio.setText("Any of the Search Terms (OR)");
 
-        jRadioButton3.setText("Exact Phrase");
+        buttonGroup.add(PhraseSearchRadio);
+        PhraseSearchRadio.setText("Exact Phrase");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -339,21 +343,20 @@ public class Main_GUI extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jRadioButton1)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jRadioButton2)
-                                        .addGap(27, 27, 27))
+                                        .addComponent(AndSearchRadio)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(OrSearchRadio))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addGap(191, 191, 191)
-                                        .addComponent(Search, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addComponent(jRadioButton3))
+                                        .addComponent(Search, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(PhraseSearchRadio))
                             .addComponent(jScrollPane1)
                             .addComponent(SearchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 509, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(198, 198, 198)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 357, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(137, Short.MAX_VALUE))
+                .addContainerGap(116, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -364,9 +367,9 @@ public class Main_GUI extends javax.swing.JFrame {
                 .addComponent(SearchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButton1)
-                    .addComponent(jRadioButton2)
-                    .addComponent(jRadioButton3))
+                    .addComponent(AndSearchRadio)
+                    .addComponent(OrSearchRadio)
+                    .addComponent(PhraseSearchRadio))
                 .addGap(12, 12, 12)
                 .addComponent(Search)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -586,7 +589,11 @@ public class Main_GUI extends javax.swing.JFrame {
 
     private void SearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchActionPerformed
         // TODO add your handling code here:
-        Or_Search(search_list);
+        // Condition to check which search to perform
+        if (OrSearchRadio.isSelected()){
+            Or_Search(search_list);
+        }
+        
     }//GEN-LAST:event_SearchActionPerformed
     
     
@@ -629,11 +636,15 @@ public class Main_GUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Add_File_Button;
+    private javax.swing.JRadioButton AndSearchRadio;
     private javax.swing.JTextArea MatchTextArea;
+    private javax.swing.JRadioButton OrSearchRadio;
+    private javax.swing.JRadioButton PhraseSearchRadio;
     private javax.swing.JButton Rebuild_Button;
     private javax.swing.JButton Remove_File_Button;
     private javax.swing.JButton Search;
     private javax.swing.JTextField SearchTextField;
+    private javax.swing.ButtonGroup buttonGroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -642,9 +653,6 @@ public class Main_GUI extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
