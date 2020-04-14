@@ -7,6 +7,8 @@ package thjd.search_engine;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,7 +60,7 @@ public class Main_GUI extends javax.swing.JFrame {
             }
             // Closes the file
             br.close();
-            System.out.println("Index Read");
+            //System.out.println("Index Read");
             
         } catch(IOException e){
             System.out.println("index.txt File not found");
@@ -215,6 +217,7 @@ public class Main_GUI extends javax.swing.JFrame {
     private void Or_Search (ArrayList<String> search_list){
         search_list.clear(); // Clears list
         MatchTextArea.setText("Matched Files: \n"); // Field Header
+        HashSet<String> match_set = new HashSet<String>(); //matched files set
         
         // Build search words from the text input, conditions the, builds list
         String[] search_words = SearchTextField.getText().
@@ -237,12 +240,17 @@ public class Main_GUI extends javax.swing.JFrame {
                     // Finds the absolute path of matched word
                     String[] index_entry = index_list.
                             get(Integer.parseInt(string_array[1])).split("__");
-                    // Outputs absolute path in text field
-                    MatchTextArea.append(index_entry[1] +"\n");
-
+                    // Adds path to HashSet
+                    match_set.add(index_entry[1]);
                 }
             }
         }
+        // Outputs absolute path HashSet in text field using iterator
+        Iterator<String> i = match_set.iterator();
+        while(i.hasNext())  {
+            MatchTextArea.append(i.next() +"\n");
+        } 
+        
     }
     /**
      * This method is called from within the constructor to initialize the form.
