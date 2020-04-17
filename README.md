@@ -9,6 +9,12 @@ The application loads on the Search page.
 
 ![Maintenance](https://i.imgur.com/4j76jSU.png)
 
+'Add Files...' Add file(s) to the index. (Be patient when adding large files)
+
+'Rebuild Out-of-date' should be renamed to "Refresh" as this button does no building whatsoever.
+
+'Remove Selected Files'  removes files and rebuilds ENTIRE index. (Be patient when removing files from large indexes)
+
 'Search Engine...' will take you to the previous window.
 
 # Team Organization and Work Procedures
